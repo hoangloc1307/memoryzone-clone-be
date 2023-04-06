@@ -8,32 +8,14 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String   @db.VarChar(255)
-  content   String?
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-
-  @@index(authorId)
+enum Role {
+  USER
+  ADMIN
 }
 
-model Profile {
-  id     Int     @id @default(autoincrement())
-  bio    String?
-  user   User    @relation(fields: [userId], references: [id])
-  userId Int     @unique
-
-  @@index(userId)
-}
-
-model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  posts   Post[]
-  profile Profile?
+model Account {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  role     Role   @default(USER)
 }

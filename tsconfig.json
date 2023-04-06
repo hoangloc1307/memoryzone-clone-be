@@ -13,5 +13,6 @@
       "~/*": ["src/*"]
     }
   },
+  "files": ["src/v1/@types/response.type.d.ts"],
   "include": ["src/**/*"]
 }
