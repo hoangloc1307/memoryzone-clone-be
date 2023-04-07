@@ -33,7 +33,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         next(new AppError(STATUS.InternalServerError, 'Đăng ký không thành công'))
       }
     } else {
-      next(new AppError(STATUS.BadRequest, 'Email đã tồn tại'))
+      next(new AppError(STATUS.BadRequest, { email: 'Email đã tồn tại' }))
     }
   } catch (err) {
     next(err)
@@ -47,6 +47,9 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     const account = await prismaClient.account.findFirst({
       where: {
         email: email,
+      },
+      include: {
+        token: true,
       },
     })
     if (account) {
@@ -69,14 +72,25 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
             expiresIn: jwtConfig.RefreshTokenExpiresTime,
           })
 
-          await prismaClient.token.create({
-            data: {
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-              accountId: account.id,
-            },
-          })
-
+          if (account.token) {
+            await prismaClient.token.update({
+              where: {
+                accountId: account.id,
+              },
+              data: {
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+              },
+            })
+          } else {
+            await prismaClient.token.create({
+              data: {
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                accountId: account.id,
+              },
+            })
+          }
           // Response
           responseSuccess(res, STATUS.Ok, {
             message: 'Login thành công',

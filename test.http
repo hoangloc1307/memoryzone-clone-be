@@ -14,7 +14,7 @@ POST http://localhost:3005/api/v1/auth/login
 Content-Type: application/json
 
 {
-    "email": "hoangloc1307@gmail.com",
+    "email": "hoangloc13071@gmail.com",
     "password": "123456"
 }
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 ### Logout
 DELETE http://localhost:3005/api/v1/auth/logout
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2ZGRjNWUzLTQ4ZTItNDU5NC1iYzQxLTNmOWI5YjZkMzEyMCIsImVtYWlsIjoiaG9hbmdsb2MxMzA3QGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjgwODU2MTcxLCJleHAiOjE2ODA4NTY0NzF9.2ZXzzB3KmbgXUY3U6ihCkq8K8c23silB3tqsn45VMVg
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwZDZhMTQ3LTExYjgtNDQ3Ny1hNDJhLTkyNDE0MzA1YWQxMCIsImVtYWlsIjoiaG9hbmdsb2MxMzA3MUBnbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsImlhdCI6MTY4MDg3NTE5MSwiZXhwIjoxNjgwODc1NDkxfQ.SDg5NoW4epA7fBtjHd8pzuKLud663QFz-oQ-IB764_Y
 
 
 
@@ -32,5 +32,5 @@ POST http://localhost:3005/api/v1/auth/refresh-token
 Content-Type: application/json
 
 {
-    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2ZGRjNWUzLTQ4ZTItNDU5NC1iYzQxLTNmOWI5YjZkMzEyMCIsImVtYWlsIjoiaG9hbmdsb2MxMzA3QGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjgwODU2MTcxLCJleHAiOjE2ODM0NDgxNzF9.kL8olkavS5Za-IsoSQyp9DCXCFlE1vJsK2L2-fmZ1mk"
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImE2ZGRjNWUzLTQ4ZTItNDU5NC1iYzQxLTNmOWI5YjZkMzEyMCIsImVtYWlsIjoiaG9hbmdsb2MxMzA3QGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNjgwODc1MTY2LCJleHAiOjE2ODM0NjcxNjZ9.UGU38prnwdI2kQ2Bp1Sew-ftyFIrVh1_qjdn0_diHsU"
 }
