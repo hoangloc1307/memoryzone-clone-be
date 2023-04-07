@@ -4,7 +4,6 @@ import AppError from '../utils/error'
 
 const errorMiddleware = (err: AppError | any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
-    const status = err.status
     if (typeof err.error === 'string') {
       res.status(err.status).json({ status: 'Error', message: err.error })
     } else {

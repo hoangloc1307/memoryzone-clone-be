@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import { body, validationResult } from 'express-validator'
-import AppError from '../utils/error'
+import { jwtConfig } from '../configs/jwt'
 import { STATUS } from '../constants/httpStatus'
+import AppError from '../utils/error'
+import { verifyToken } from '../utils/jwt'
+import prismaClient from '../utils/prisma'
 
 const dataRules = [
   body('email')
@@ -33,9 +36,59 @@ const validatePayload = (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
+const verifyAccessToken = async (req: Request, res: Response, next: NextFunction) => {
+  const accessToken = req.headers.authorization?.split(' ')[1]
+  if (accessToken) {
+    try {
+      const decoded = await verifyToken(accessToken, jwtConfig.AccessTokenSecret)
+      const token = await prismaClient.token.findFirst({
+        where: {
+          accessToken: accessToken,
+        },
+      })
+      if (token) {
+        req.jwtDecoded = decoded
+        next()
+      } else {
+        next(new AppError(STATUS.BadRequest, 'Access token không tồn tại'))
+      }
+    } catch (err) {
+      next(err)
+    }
+  } else {
+    next(new AppError(STATUS.BadRequest, 'Access token chưa được gửi'))
+  }
+}
+
+const verifyRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
+  const refreshToken = req.body.refresh_token
+  if (refreshToken) {
+    try {
+      const decoded = await verifyToken(refreshToken, jwtConfig.RefreshTokenSecret)
+      const token = await prismaClient.token.findFirst({
+        where: {
+          refreshToken: refreshToken,
+        },
+      })
+      if (token) {
+        req.jwtDecoded = decoded
+        next()
+      } else {
+        next(new AppError(STATUS.BadRequest, 'Refresh token không tồn tại'))
+      }
+    } catch (err) {
+      next(err)
+    }
+  } else {
+    next(new AppError(STATUS.BadRequest, 'Refresh token chưa được gửi'))
+  }
+}
+
 const authMiddleware = {
   dataRules,
   validatePayload,
+  verifyAccessToken,
+  verifyRefreshToken,
 }
 
 export default authMiddleware
