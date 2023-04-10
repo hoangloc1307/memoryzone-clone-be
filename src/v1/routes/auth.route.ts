@@ -8,6 +8,7 @@ route.post('/register', authMiddleware.dataRules, authMiddleware.validatePayload
 route.post('/login', authMiddleware.dataRules, authMiddleware.validatePayload, authController.login)
 route.delete('/logout', authMiddleware.verifyAccessToken, authController.logout)
 route.post('/refresh-token', authMiddleware.verifyRefreshToken, authController.refreshToken)
+route.post('/get-access-token', authMiddleware.verifyOAuthToken, authController.getAccessToken)
 
 const authRouter = route
 export default authRouter

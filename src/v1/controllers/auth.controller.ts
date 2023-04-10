@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from 'express'
+import { NextFunction, Request, Response, response } from 'express'
 import { jwtConfig } from '../configs/jwt'
 import { STATUS } from '../constants/httpStatus'
 import AppError from '../utils/error'
@@ -104,10 +104,10 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           next(new AppError(STATUS.Unauthorized, 'Tài khoản đang bị khoá'))
         }
       } else {
-        next(new AppError(STATUS.BadRequest, 'Sai mật khẩu'))
+        next(new AppError(STATUS.Unauthorized, 'Sai mật khẩu'))
       }
     } else {
-      next(new AppError(STATUS.BadRequest, 'Email không tồn tại'))
+      next(new AppError(STATUS.Unauthorized, 'Email không tồn tại'))
     }
   } catch (err) {
     next(err)
@@ -172,11 +172,115 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
   }
 }
 
+const getAccessToken = async (req: Request, res: Response, next: NextFunction) => {
+  const { data } = req
+  const { email, access_token } = req.body
+  try {
+    const account = await prismaClient.account.findFirst({
+      where: {
+        email: email,
+      },
+      include: {
+        token: true,
+      },
+    })
+    if (account) {
+      if (account.status) {
+        // Generate token and update to database
+        const payload = {
+          id: account.id,
+          email: account.email,
+          role: account.role,
+        }
+
+        const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
+          expiresIn: jwtConfig.AccessTokenExpiresTime,
+        })
+        const refreshToken = signToken(payload, jwtConfig.RefreshTokenSecret, {
+          expiresIn: jwtConfig.RefreshTokenExpiresTime,
+        })
+
+        if (account.token) {
+          await prismaClient.token.update({
+            where: {
+              accountId: account.id,
+            },
+            data: {
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+            },
+          })
+        } else {
+          await prismaClient.token.create({
+            data: {
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+              accountId: account.id,
+            },
+          })
+        }
+        // Response
+        responseSuccess(res, STATUS.Ok, {
+          message: 'Login thành công',
+          data: {
+            ...payload,
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          },
+        })
+      } else {
+        next(new AppError(STATUS.Unauthorized, 'Tài khoản đang bị khoá'))
+      }
+    } else {
+      const passwordHash = await hashPassword(access_token)
+      const account = await prismaClient.account.create({
+        data: {
+          email: email,
+          password: passwordHash,
+        },
+      })
+
+      const payload = {
+        id: account.id,
+        email: account.email,
+        role: account.role,
+      }
+
+      const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
+        expiresIn: jwtConfig.AccessTokenExpiresTime,
+      })
+      const refreshToken = signToken(payload, jwtConfig.RefreshTokenSecret, {
+        expiresIn: jwtConfig.RefreshTokenExpiresTime,
+      })
+
+      await prismaClient.token.create({
+        data: {
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          accountId: account.id,
+        },
+      })
+
+      responseSuccess(res, STATUS.Ok, {
+        message: 'Login thành công',
+        data: {
+          ...payload,
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        },
+      })
+    }
+  } catch (err) {
+    next(err)
+  }
+}
+
 const authController = {
   register,
   login,
   logout,
   refreshToken,
+  getAccessToken,
 }
 
 export default authController

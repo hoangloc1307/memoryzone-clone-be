@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { NextFunction, Request, Response } from 'express'
 import { body, validationResult } from 'express-validator'
 import { jwtConfig } from '../configs/jwt'
@@ -84,11 +85,41 @@ const verifyRefreshToken = async (req: Request, res: Response, next: NextFunctio
   }
 }
 
+const verifyOAuthToken = async (req: Request, res: Response, next: NextFunction) => {
+  const { provider, access_token, token_type } = req.body
+
+  if (access_token) {
+    try {
+      switch (provider) {
+        case 'github':
+          const result = await axios.get('https://api.github.com/user', {
+            headers: {
+              Authorization: `${token_type} ${access_token}`,
+            },
+          })
+          if (result.status === 200) {
+            req.data = result.data
+            next()
+          }
+          break
+
+        default:
+          break
+      }
+    } catch (err) {
+      next(err)
+    }
+  } else {
+    next(new AppError(STATUS.BadRequest, 'Token chưa được gửi'))
+  }
+}
+
 const authMiddleware = {
   dataRules,
   validatePayload,
   verifyAccessToken,
   verifyRefreshToken,
+  verifyOAuthToken,
 }
 
 export default authMiddleware
