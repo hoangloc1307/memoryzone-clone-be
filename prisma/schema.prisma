@@ -8,26 +8,255 @@ datasource db {
   relationMode = "prisma"
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
 model Account {
-  id        String    @id @default(uuid())
+  id        String    @id @default(cuid())
   email     String    @unique
   password  String
   role      Role      @default(USER)
   status    Boolean   @default(true)
   createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @map("updated_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  userId    String    @unique @map("user_id")
   token     Token?
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("account")
 }
 
 model Token {
-  id           String  @id @default(uuid())
+  accountId    String  @unique @map("account_id")
   accessToken  String  @map("access_token") @db.Text
   refreshToken String  @map("refresh_token") @db.Text
   account      Account @relation(fields: [accountId], references: [id])
-  accountId    String  @unique @map("account_id")
+
+  @@map("token")
+}
+
+model User {
+  id               String     @id @default(cuid())
+  name             String
+  dayOfBirth       DateTime?  @map("day_of_birth")
+  email            String
+  phone            String?
+  address          String?
+  avatar           String?
+  type             UserType   @default(CUSTOMER)
+  account          Account?
+  customerOrders   Order[]    @relation("CustomerOrder")
+  employeeOrders   Order[]    @relation("EmployeeOrder")
+  productCarts     Cart[]
+  productFeedbacks Feedback[]
+
+  @@map("user")
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  city          String
+  district      String
+  ward          String
+  addressDetail String        @map("address_detail")
+  phone         String
+  email         String
+  note          String?
+  discount      Int?
+  shippingFee   Int           @map("shipping_fee")
+  paymentMethod PaymentMethod @map("payment_method")
+  status        OrderStatus   @default(PENDING)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime?     @updatedAt @map("updated_at")
+  customerId    String        @map("customer_id")
+  employeeId    String        @map("employee_id")
+  products      OrderDetail[]
+  customer      User          @relation("CustomerOrder", fields: [customerId], references: [id])
+  employee      User          @relation("EmployeeOrder", fields: [employeeId], references: [id])
+
+  @@index([customerId])
+  @@index([employeeId])
+  @@map("order")
+}
+
+model Product {
+  id                Int                     @id @default(autoincrement())
+  name              String
+  price             Int
+  priceDiscount     Int?                    @map("price_discount")
+  view              Int
+  quantity          Int
+  shortInfo         String?                 @map("short_info") @db.Text
+  vendor            String
+  description       String?                 @db.Text
+  productTypeId     Int                     @map("product_type_id")
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime?               @updatedAt @map("updated_at")
+  productAttributes ProductAttributeValue[]
+  orders            OrderDetail[]
+  images            Image[]
+  userCarts         Cart[]
+  userFeedbacks     Feedback[]
+  promotions        Promotion[]
+  productType       ProductType             @relation(fields: [productTypeId], references: [id])
+
+  @@index([productTypeId])
+  @@map("product")
+}
+
+model ProductType {
+  id                Int                @id @default(autoincrement())
+  type              String
+  products          Product[]
+  categories        Category[]
+  productAttributes ProductAttribute[]
+
+  @@map("product_type")
+}
+
+model ProductAttribute {
+  id            Int                     @id @default(autoincrement())
+  attribute     String
+  showOnFilter  Boolean                 @default(false) @map("show_on_filter")
+  productTypeId Int                     @map("product_type_id")
+  products      ProductAttributeValue[]
+  productType   ProductType             @relation(fields: [productTypeId], references: [id])
+
+  @@index([productTypeId])
+  @@map("product_attribute")
+}
+
+model ProductAttributeValue {
+  value              String
+  productAttributeId Int              @map("product_attribute_id")
+  productId          Int              @map("product_id")
+  productAttribute   ProductAttribute @relation(fields: [productAttributeId], references: [id])
+  product            Product          @relation(fields: [productId], references: [id])
+
+  @@unique([value, productId, productAttributeId])
+  @@index([productId])
+  @@index([productAttributeId])
+  @@map("product_attribute_value")
+}
+
+model OrderDetail {
+  quantity  Int
+  productId Int     @map("product_id")
+  orderId   Int     @map("order_id")
+  product   Product @relation(fields: [productId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  @@unique([productId, orderId])
+  @@index([productId])
+  @@index([orderId])
+  @@map("order_detail")
+}
+
+model Cart {
+  quantity  Int
+  productId Int     @map("product_id")
+  userId    String  @map("user_id")
+  product   Product @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+  @@map("cart")
+}
+
+model Feedback {
+  productId Int       @map("product_id")
+  userId    String    @map("user_id")
+  rating    Int
+  comment   String    @db.Text
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  product   Product   @relation(fields: [productId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+  @@map("feedback")
+}
+
+model Promotion {
+  id          Int       @id @default(autoincrement())
+  name        String
+  from        DateTime?
+  to          DateTime?
+  description String?   @db.Text
+  content     String    @db.Text
+  products    Product[]
+
+  @@map("promotion")
+}
+
+model Category {
+  id            Int         @id @default(autoincrement())
+  name          String?
+  icon          String?
+  parentId      Int         @map("parent_category_id")
+  productTypeId Int         @map("product_type_id")
+  banners       Banner[]
+  categories    Category[]  @relation("SubCategories")
+  category      Category    @relation("SubCategories", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  productType   ProductType @relation(fields: [productTypeId], references: [id])
+
+  @@index([parentId])
+  @@index([productTypeId])
+  @@map("category")
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  image     String
+  alt       String?
+  type      String
+  order     Int?
+  productId Int?     @map("product_id")
+  product   Product? @relation(fields: [productId], references: [id])
+  Banner    Banner?
+
+  @@index([productId])
+  @@map("image")
+}
+
+model Banner {
+  id         Int       @id @default(autoincrement())
+  linkTo     String    @map("link_to")
+  position   String
+  imageId    Int       @unique @map("image_id")
+  categoryId Int?      @map("category_id")
+  image      Image     @relation(fields: [imageId], references: [id])
+  Category   Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+  @@map("banner")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserType {
+  EMPLOYEE
+  CUSTOMER
+}
+
+enum PaymentMethod {
+  CASH
+  INTERNET_BANKING
+  COD
+  ATM
+  ZALOPAY
+  MOMO
+  VNPAY
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  SHIPPING
+  COMPLETED
 }
