@@ -8,7 +8,7 @@ import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body
+  const { email, password, name } = req.body
   try {
     // Check email exists
     const existsEmail = await prismaClient.account.findFirst({
@@ -24,6 +24,12 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         data: {
           email: email,
           password: passwordHash,
+          user: {
+            create: {
+              email: email,
+              name: name,
+            },
+          },
         },
       })
       // Response
@@ -174,7 +180,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
 
 const getAccessToken = async (req: Request, res: Response, next: NextFunction) => {
   const { data } = req
-  const { email, access_token } = req.body
+  const { email, access_token, name } = req.body
   try {
     const account = await prismaClient.account.findFirst({
       where: {
@@ -237,6 +243,12 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
         data: {
           email: email,
           password: passwordHash,
+          user: {
+            create: {
+              email: email,
+              name: name,
+            },
+          },
         },
       })
 

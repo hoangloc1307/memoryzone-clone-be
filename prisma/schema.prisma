@@ -81,14 +81,14 @@ model Product {
   name              String
   price             Int
   priceDiscount     Int?                    @map("price_discount")
-  view              Int
+  view              Int                     @default(0)
   quantity          Int
   shortInfo         String?                 @map("short_info") @db.Text
   vendor            String
   description       String?                 @db.Text
   productTypeId     Int                     @map("product_type_id")
   createdAt         DateTime                @default(now()) @map("created_at")
-  updatedAt         DateTime?               @updatedAt @map("updated_at")
+  updatedAt         DateTime?               @map("updated_at")
   productAttributes ProductAttributeValue[]
   orders            OrderDetail[]
   images            Image[]
