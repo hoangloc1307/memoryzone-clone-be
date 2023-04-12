@@ -113,12 +113,13 @@ model ProductType {
 
 model ProductAttribute {
   id            Int                     @id @default(autoincrement())
-  attribute     String                  @unique
+  attribute     String
   showOnFilter  Boolean                 @default(false) @map("show_on_filter")
   productTypeId Int                     @map("product_type_id")
   products      ProductAttributeValue[]
   productType   ProductType             @relation(fields: [productTypeId], references: [id])
 
+  @@unique([productTypeId, attribute])
   @@index([productTypeId])
   @@map("product_attribute")
 }

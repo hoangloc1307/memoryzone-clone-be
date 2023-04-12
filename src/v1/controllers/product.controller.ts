@@ -34,7 +34,7 @@ const addProduct = async (req: Request, res: Response, next: NextFunction) => {
       priceDiscount: price_discount ?? 0,
       quantity,
       description: description || `<p>${name}</p>`,
-      shortInfo: short_info || JSON.stringify([]),
+      shortInfo: JSON.stringify(short_info || []),
       vendor,
       productType: {
         connectOrCreate: {
@@ -59,7 +59,19 @@ const addProductAttributes = async (req: Request, res: Response, next: NextFunct
       },
     })
     if (productType) {
-      responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công' })
+      const attributeArray = attributes.reduce(
+        (result: [{ attribute: string }], current: string) => [
+          ...result,
+          { attribute: current, productTypeId: productType.id },
+        ],
+        []
+      )
+
+      const data = await prismaClient.productAttribute.createMany({
+        data: attributeArray,
+      })
+
+      responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công', data: data })
     } else {
       next(new AppError(STATUS.NotFound, 'Không tìm thấy loại sản phẩm tương ứng'))
     }

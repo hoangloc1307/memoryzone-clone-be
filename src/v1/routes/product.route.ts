@@ -8,11 +8,17 @@ const productRouter = Router()
 
 productRouter.get('/', productController.getProducts)
 productRouter.get('/vendors', productController.getProductVendors)
-productRouter.post('/attributes', productController.addProductAttributes)
+productRouter.post(
+  '/attributes',
+  authMiddleware.verifyAdmin,
+  productValidate.addProductAttributes,
+  validationMiddleware.validatePayload,
+  productController.addProductAttributes
+)
 productRouter.post(
   '/add',
   authMiddleware.verifyAdmin,
-  productValidate.addProductRules,
+  productValidate.addProduct,
   validationMiddleware.validatePayload,
   productController.addProduct
 )

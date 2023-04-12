@@ -1,6 +1,6 @@
 import { body } from 'express-validator'
 
-const addProductRules = [
+const addProduct = [
   body('name').trim().notEmpty().withMessage('Tên không được để trống'),
   body('price')
     .notEmpty()
@@ -20,8 +20,13 @@ const addProductRules = [
   body('type').notEmpty().withMessage('Loại sản phẩm không được để trống'),
 ]
 
+const addProductAttributes = [
+  body('attributes').isArray({ min: 1 }).withMessage('Thuộc tính sản phẩm phải là mảng và có ít nhất 1 giá trị'),
+]
+
 const productValidate = {
-  addProductRules,
+  addProduct,
+  addProductAttributes,
 }
 
 export default productValidate
