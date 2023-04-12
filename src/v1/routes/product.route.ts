@@ -6,6 +6,9 @@ import productValidate from '../validations/product'
 
 const productRouter = Router()
 
+productRouter.get('/', productController.getProducts)
+productRouter.get('/vendors', productController.getProductVendors)
+productRouter.post('/attributes', productController.addProductAttributes)
 productRouter.post(
   '/add',
   authMiddleware.verifyAdmin,
@@ -13,6 +16,5 @@ productRouter.post(
   validationMiddleware.validatePayload,
   productController.addProduct
 )
-productRouter.get('/', productController.getProducts)
 
 export default productRouter

@@ -16,6 +16,8 @@ const addProductRules = [
     .withMessage('Số lượng sản phẩm không được để trống')
     .isInt({ allow_leading_zeroes: false, min: -1 })
     .withMessage('Số lượng sản phẩm không hợp lệ'),
+  body('vendor').notEmpty().withMessage('Thương hiệu không được để trống'),
+  body('type').notEmpty().withMessage('Loại sản phẩm không được để trống'),
 ]
 
 const productValidate = {

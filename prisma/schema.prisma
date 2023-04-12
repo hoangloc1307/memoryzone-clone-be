@@ -103,7 +103,7 @@ model Product {
 
 model ProductType {
   id                Int                @id @default(autoincrement())
-  type              String
+  type              String             @unique
   products          Product[]
   categories        Category[]
   productAttributes ProductAttribute[]
@@ -113,7 +113,7 @@ model ProductType {
 
 model ProductAttribute {
   id            Int                     @id @default(autoincrement())
-  attribute     String
+  attribute     String                  @unique
   showOnFilter  Boolean                 @default(false) @map("show_on_filter")
   productTypeId Int                     @map("product_type_id")
   products      ProductAttributeValue[]
