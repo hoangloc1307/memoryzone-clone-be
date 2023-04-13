@@ -1,6 +1,6 @@
 import { body } from 'express-validator'
 
-const loginRules = [
+const login = [
   body('email')
     .trim()
     .notEmpty()
@@ -16,11 +16,11 @@ const loginRules = [
     .withMessage('Mật khẩu phải từ 6-32 kí tự'),
 ]
 
-const registerRules = [...loginRules, body('name').trim().notEmpty().withMessage('Tên không được để trống')]
+const register = [...login, body('name').trim().notEmpty().withMessage('Tên không được để trống')]
 
 const authValidate = {
-  loginRules,
-  registerRules,
+  login,
+  register,
 }
 
 export default authValidate

@@ -78,24 +78,28 @@ model Order {
 
 model Product {
   id                Int                     @id @default(autoincrement())
-  name              String
-  price             Int
+  name              String?
+  price             Int?
   priceDiscount     Int?                    @map("price_discount")
   view              Int                     @default(0)
-  quantity          Int
+  quantity          Int?
   shortInfo         String?                 @map("short_info") @db.Text
-  vendor            String
+  vendor            String?
   description       String?                 @db.Text
-  productTypeId     Int                     @map("product_type_id")
+  slug              String?                 @unique
+  productTypeId     Int?                    @map("product_type_id")
   createdAt         DateTime                @default(now()) @map("created_at")
   updatedAt         DateTime?               @map("updated_at")
+  isDraft           Boolean                 @default(true) @map("is_draft")
+  isPublish         Boolean                 @default(false) @map("is_publish")
+  categories        Category[]
   productAttributes ProductAttributeValue[]
   orders            OrderDetail[]
   images            Image[]
   userCarts         Cart[]
   userFeedbacks     Feedback[]
   promotions        Promotion[]
-  productType       ProductType             @relation(fields: [productTypeId], references: [id])
+  productType       ProductType?            @relation(fields: [productTypeId], references: [id])
 
   @@index([productTypeId])
   @@map("product")
@@ -194,13 +198,14 @@ model Promotion {
 model Category {
   id            Int         @id @default(autoincrement())
   name          String?
-  icon          String?
   parentId      Int         @map("parent_category_id")
   productTypeId Int         @map("product_type_id")
+  products      Product[]
   banners       Banner[]
   categories    Category[]  @relation("SubCategories")
   category      Category    @relation("SubCategories", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   productType   ProductType @relation(fields: [productTypeId], references: [id])
+  image         Image?
 
   @@index([parentId])
   @@index([productTypeId])
@@ -208,14 +213,16 @@ model Category {
 }
 
 model Image {
-  id        Int      @id @default(autoincrement())
-  image     String
-  alt       String?
-  type      String
-  order     Int?
-  productId Int?     @map("product_id")
-  product   Product? @relation(fields: [productId], references: [id])
-  Banner    Banner?
+  id         Int       @id @default(autoincrement())
+  image      String
+  alt        String?
+  type       String
+  order      Int?
+  productId  Int?      @map("product_id")
+  categoryId Int?      @unique @map("category_id")
+  banner     Banner?
+  product    Product?  @relation(fields: [productId], references: [id])
+  category   Category? @relation(fields: [categoryId], references: [id])
 
   @@index([productId])
   @@map("image")

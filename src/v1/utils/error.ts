@@ -4,7 +4,7 @@ class AppError extends Error {
   constructor(status: number, error: string | object) {
     super()
     this.status = status
-    this.error = error
+    this.error = error || 'App Error'
   }
 }
 

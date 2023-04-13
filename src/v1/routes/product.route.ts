@@ -2,25 +2,28 @@ import { Router } from 'express'
 import productController from '../controllers/product.controller'
 import authMiddleware from '../middlewares/auth.middleware'
 import validationMiddleware from '../middlewares/validation.middleware'
-import productValidate from '../validations/product'
+import productValidate from '../validations/product.validation'
+import { catchError } from '../utils/response'
 
 const productRouter = Router()
 
-productRouter.get('/', productController.getProducts)
-productRouter.get('/vendors', productController.getProductVendors)
+productRouter.get('/', catchError(productController.getProducts))
+productRouter.get('/vendors', catchError(productController.getProductVendors))
+productRouter.get('/attributes', catchError(productController.getProductAttributes))
 productRouter.post(
   '/attributes',
   authMiddleware.verifyAdmin,
   productValidate.addProductAttributes,
   validationMiddleware.validatePayload,
-  productController.addProductAttributes
+  catchError(productController.addProductAttributes)
 )
-productRouter.post(
-  '/add',
+productRouter.post('/drafts', authMiddleware.verifyAdmin, catchError(productController.addDraftProduct))
+productRouter.patch(
+  '/update',
   authMiddleware.verifyAdmin,
-  productValidate.addProduct,
+  productValidate.updateProduct,
   validationMiddleware.validatePayload,
-  productController.addProduct
+  catchError(productController.updateProduct)
 )
 
 export default productRouter
