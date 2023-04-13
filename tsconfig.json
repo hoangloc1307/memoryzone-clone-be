@@ -8,12 +8,9 @@
     "lib": ["ESNext"],
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "baseUrl": ".",
-    "paths": {
-      "~/*": ["src/*"]
-    },
-    "typeRoots": ["src/v1/@types"]
+    "baseUrl": "../v1",
+    "typeRoots": ["v1/@types"]
   },
-  "include": ["src/**/*"],
-  "files": ["src/v1/@types/response.type.d.ts"]
+  "include": ["v1/**/*"],
+  "files": ["v1/@types/response.type.d.ts"]
 }

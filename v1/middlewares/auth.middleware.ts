@@ -31,7 +31,7 @@ const verifyAccessToken = async (req: Request, res: Response, next: NextFunction
 }
 
 const verifyRefreshToken = async (req: Request, res: Response, next: NextFunction) => {
-  const refreshToken = req.body.refresh_token
+  const { refreshToken } = req.body
   if (refreshToken) {
     try {
       const decoded = await verifyToken(refreshToken, jwtConfig.RefreshTokenSecret)
@@ -55,15 +55,15 @@ const verifyRefreshToken = async (req: Request, res: Response, next: NextFunctio
 }
 
 const verifyOAuthToken = async (req: Request, res: Response, next: NextFunction) => {
-  const { provider, access_token } = req.body
+  const { provider, accessToken } = req.body
 
-  if (access_token) {
+  if (accessToken) {
     try {
       switch (provider) {
         case 'github':
           const result = await axios.get('https://api.github.com/user', {
             headers: {
-              Authorization: `Bearer ${access_token}`,
+              Authorization: `Bearer ${accessToken}`,
             },
           })
           if (result.status === 200) {

@@ -71,7 +71,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
       if (account.status) {
         // Generate token
         const payload = {
-          id: account.id,
+          id: account.user.id,
           email: account.email,
           role: account.role,
           name: account.user.name,
@@ -145,7 +145,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
   })
 
   const payload = {
-    id: account.id,
+    id: account.user.id,
     email: account.email,
     role: account.role,
     name: account.user.name,
@@ -179,7 +179,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
 // [POST] /auth/get-access-token
 const getAccessToken = async (req: Request, res: Response, next: NextFunction) => {
   const { data } = req
-  const { email, access_token, name, image } = req.body
+  const { email, token, name, image } = req.body
 
   const account = await prismaClient.account.findFirst({
     where: {
@@ -195,7 +195,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
     if (account.status) {
       // Generate token and update to database
       const payload = {
-        id: account.id,
+        id: account.user.id,
         email: account.email,
         role: account.role,
         name: account.user.name,
@@ -228,8 +228,8 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
         message: 'Login thành công',
         data: {
           ...payload,
-          access_token: accessToken,
-          refresh_token: refreshToken,
+          accessToken: accessToken,
+          refreshToken: refreshToken,
         },
       })
     } else {
@@ -237,7 +237,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
     }
   } else {
     // If not exists email then create new account
-    const passwordHash = await hashPassword(access_token)
+    const passwordHash = await hashPassword(token)
     const account = await prismaClient.account.create({
       data: {
         email: email,
@@ -257,7 +257,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
 
     // Generate token
     const payload = {
-      id: account.id,
+      id: account.user.id,
       email: account.email,
       role: account.role,
       name: account.user.name,

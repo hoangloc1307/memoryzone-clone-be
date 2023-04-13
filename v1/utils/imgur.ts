@@ -1,4 +1,5 @@
 import axios, { AxiosPromise } from 'axios'
+import { imgurConfig } from '../configs/imgur'
 
 export const imgurUpload = (images: Express.Multer.File[]) => {
   const promiseArr: AxiosPromise[] = []
@@ -14,7 +15,7 @@ export const imgurUpload = (images: Express.Multer.File[]) => {
         },
         {
           headers: {
-            Authorization: 'Bearer 7c860d13657676966d755257df3cec489786d7ec',
+            Authorization: `Bearer ${imgurConfig.AccessToken}`,
           },
         }
       )
