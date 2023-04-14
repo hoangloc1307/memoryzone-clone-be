@@ -7,6 +7,7 @@ import { catchError } from '../utils/response'
 
 const cartRouter = Router()
 
+cartRouter.get('/', authMiddleware.verifyAccessToken, catchError(cartController.getCart))
 cartRouter.post(
   '/',
   authMiddleware.verifyAccessToken,

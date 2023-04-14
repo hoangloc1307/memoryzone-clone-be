@@ -9,6 +9,34 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: [] })
 }
 
+// [GET] /products/:id
+const getProductById = async (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params
+
+  const product = await prismaClient.product.findUnique({
+    where: {
+      id: Number(id),
+    },
+    include: {
+      productType: {
+        include: {
+          productAttributes: {
+            select: {
+              id: true,
+              attribute: true,
+            },
+          },
+        },
+      },
+      productAttributes: true,
+      images: true,
+      categories: true,
+    },
+  })
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: product })
+}
+
 // [GET] /products/vendors
 const getProductVendors = async (req: Request, res: Response, next: NextFunction) => {
   const vendors = await prismaClient.product.findMany({
@@ -123,13 +151,23 @@ const addDraftProduct = async (req: Request, res: Response, next: NextFunction) 
   responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: product })
 }
 
+// [GET] /products/types
+const getProductTypes = async (req: Request, res: Response, next: NextFunction) => {
+  const types = await prismaClient.productType.findMany()
+
+  // const data = vendors.reduce((result: string[], current) => [...result, current.vendor as string], [])
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: types })
+}
+
 const productController = {
   getProducts,
+  getProductById,
   getProductVendors,
   getProductAttributes,
-  updateProduct,
+  getProductTypes,
   addProductAttributes,
   addDraftProduct,
+  updateProduct,
 }
 
 export default productController

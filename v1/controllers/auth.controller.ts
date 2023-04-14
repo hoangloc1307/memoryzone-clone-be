@@ -105,8 +105,8 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           message: 'Login thành công',
           data: {
             ...payload,
-            access_token: accessToken,
-            refresh_token: refreshToken,
+            accessToken: accessToken,
+            refreshToken: refreshToken,
           },
         })
       } else {
@@ -283,8 +283,8 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
       message: 'Login thành công',
       data: {
         ...payload,
-        access_token: accessToken,
-        refresh_token: refreshToken,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
       },
     })
   }

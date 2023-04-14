@@ -9,7 +9,6 @@ const addToCart = [
     .withMessage('Phải là số')
     .isNumeric({ no_symbols: true })
     .withMessage('Không hợp lệ'),
-  body('userId').notEmpty().withMessage('Không được để trống'),
 ]
 
 const updateCart = [
@@ -21,7 +20,6 @@ const updateCart = [
     .withMessage('Phải là số')
     .isNumeric({ no_symbols: true })
     .withMessage('Không hợp lệ'),
-  body('userId').notEmpty().withMessage('Không được để trống'),
   body('quantity')
     .not()
     .isString()

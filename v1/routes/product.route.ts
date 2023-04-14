@@ -10,6 +10,8 @@ const productRouter = Router()
 productRouter.get('/', catchError(productController.getProducts))
 productRouter.get('/vendors', catchError(productController.getProductVendors))
 productRouter.get('/attributes', catchError(productController.getProductAttributes))
+productRouter.get('/types', catchError(productController.getProductTypes))
+productRouter.get('/:id', catchError(productController.getProductById))
 productRouter.post(
   '/attributes',
   authMiddleware.verifyAdmin,

@@ -4,11 +4,38 @@ import { STATUS } from '../constants/httpStatus'
 import prismaClient from '../utils/prisma'
 import AppError from '../utils/error'
 
+// [GET] /cart
+const getCart = async (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.jwtDecoded.id
+
+  const data = await prismaClient.cart.findMany({
+    where: {
+      userId: userId,
+    },
+    select: {
+      quantity: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          images: true,
+          price: true,
+          priceDiscount: true,
+          quantity: true,
+        },
+      },
+    },
+  })
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy giỏ hàng thành công', data: data })
+}
+
 // [POST] /cart
 const addToCart = async (req: Request, res: Response, next: NextFunction) => {
-  const { productId, userId } = req.body
+  const { productId } = req.body
+  const userId = req.jwtDecoded.id
 
-  const product = await prismaClient.product.findFirst({
+  const product = await prismaClient.product.findUnique({
     where: {
       id: productId,
     },
@@ -32,6 +59,10 @@ const addToCart = async (req: Request, res: Response, next: NextFunction) => {
           increment: 1,
         },
       },
+      select: {
+        productId: true,
+        quantity: true,
+      },
     })
     responseSuccess(res, STATUS.Created, { message: 'Thêm sản phẩm vào giỏ hàng thành công', data: data })
   } else {
@@ -41,9 +72,10 @@ const addToCart = async (req: Request, res: Response, next: NextFunction) => {
 
 // [PATCH] /cart
 const updateCart = async (req: Request, res: Response, next: NextFunction) => {
-  const { productId, userId, quantity } = req.body
+  const { productId, quantity } = req.body
+  const userId = req.jwtDecoded.id
 
-  const product = await prismaClient.product.findFirst({
+  const product = await prismaClient.product.findUnique({
     where: {
       id: productId,
     },
@@ -61,6 +93,10 @@ const updateCart = async (req: Request, res: Response, next: NextFunction) => {
       data: {
         quantity: availableQuantity,
       },
+      select: {
+        productId: true,
+        quantity: true,
+      },
     })
     responseSuccess(res, STATUS.Created, { message: 'Cập nhật giỏ hàng thành công', data: data })
   } else {
@@ -70,7 +106,9 @@ const updateCart = async (req: Request, res: Response, next: NextFunction) => {
 
 // [DELETE] /cart
 const deleteCartItem = async (req: Request, res: Response, next: NextFunction) => {
-  const { productId, userId } = req.body
+  const { productId } = req.body
+  const userId = req.jwtDecoded.id
+
   const data = await prismaClient.cart.delete({
     where: {
       productId_userId: {
@@ -78,11 +116,15 @@ const deleteCartItem = async (req: Request, res: Response, next: NextFunction) =
         userId: userId,
       },
     },
+    select: {
+      productId: true,
+    },
   })
   responseSuccess(res, STATUS.Created, { message: 'Xoá sản phẩm khỏi giỏ hàng thành công', data: data })
 }
 
 const cartController = {
+  getCart,
   addToCart,
   updateCart,
   deleteCartItem,
