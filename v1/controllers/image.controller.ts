@@ -15,7 +15,7 @@ const uploadImages = async (req: Request, res: Response, next: NextFunction) => 
     }, [])
     responseSuccess(res, STATUS.Created, { message: 'Upload hình ảnh thành công', data: data })
   } else {
-    next(new AppError(STATUS.BadRequest, 'Không có hình nào được đính kèm'))
+    next(new AppError(STATUS.BadRequest, 'Không có hình nào được đính kèm', 'IMAGE_HAS_NOT_BEEN_SENT'))
   }
 }
 

@@ -13,7 +13,7 @@ const validatePayload = (req: Request, res: Response, next: NextFunction) => {
       return result
     }, {})
 
-    next(new AppError(STATUS.BadRequest, error))
+    next(new AppError(STATUS.BadRequest, error, 'PAYLOAD_ERROR'))
   }
 }
 

@@ -126,7 +126,7 @@ const addProductAttributes = async (req: Request, res: Response, next: NextFunct
 
     responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công', data: data })
   } else {
-    next(new AppError(STATUS.NotFound, 'Không tìm thấy loại sản phẩm tương ứng'))
+    next(new AppError(STATUS.NotFound, 'Không tìm thấy loại sản phẩm tương ứng', 'PRODUCT_TYPE_NOT_FOUND'))
   }
 }
 

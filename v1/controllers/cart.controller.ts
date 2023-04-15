@@ -66,7 +66,7 @@ const addToCart = async (req: Request, res: Response, next: NextFunction) => {
     })
     responseSuccess(res, STATUS.Created, { message: 'Thêm sản phẩm vào giỏ hàng thành công', data: data })
   } else {
-    next(new AppError(STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng'))
+    next(new AppError(STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng', 'PRODUCT_NOT_AVAILABLE'))
   }
 }
 
@@ -100,7 +100,7 @@ const updateCart = async (req: Request, res: Response, next: NextFunction) => {
     })
     responseSuccess(res, STATUS.Created, { message: 'Cập nhật giỏ hàng thành công', data: data })
   } else {
-    next(new AppError(STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng'))
+    next(new AppError(STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng', 'PRODUCT_NOT_AVAILABLE'))
   }
 }
 

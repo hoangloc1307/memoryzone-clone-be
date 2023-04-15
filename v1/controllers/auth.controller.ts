@@ -46,7 +46,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 
     responseSuccess(res, STATUS.Created, { message: 'Đăng ký thành công', data: account })
   } else {
-    next(new AppError(STATUS.BadRequest, { email: 'Email đã được đăng ký trước đó' }))
+    next(new AppError(STATUS.BadRequest, { email: 'Email đã được đăng ký trước đó' }, 'EMAIL_EXISTS'))
   }
 }
 
@@ -110,13 +110,13 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           },
         })
       } else {
-        next(new AppError(STATUS.BadRequest, 'Tài khoản đang bị khoá'))
+        next(new AppError(STATUS.BadRequest, 'Tài khoản đang bị khoá', 'ACCOUNT_HAS_BEEN_BLOCK'))
       }
     } else {
-      next(new AppError(STATUS.BadRequest, 'Sai mật khẩu'))
+      next(new AppError(STATUS.BadRequest, 'Sai mật khẩu', 'PASSWORD_WRONG'))
     }
   } else {
-    next(new AppError(STATUS.BadRequest, 'Email không tồn tại'))
+    next(new AppError(STATUS.BadRequest, 'Email không tồn tại', 'EMAIL_NOT_EXISTS'))
   }
 }
 
@@ -137,7 +137,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
   // Get account info to create payload
   const account = await prismaClient.account.findFirstOrThrow({
     where: {
-      id: req.jwtDecoded.id,
+      userId: req.jwtDecoded.id,
     },
     include: {
       user: true,
@@ -162,7 +162,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
 
   await prismaClient.token.update({
     where: {
-      accountId: req.jwtDecoded.id,
+      accountId: account.id,
     },
     data: {
       accessToken: accessToken,
@@ -172,7 +172,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
 
   responseSuccess(res, STATUS.Ok, {
     message: 'Refresh token thành công',
-    data: { access_token: accessToken, refresh_token: refreshToken },
+    data: { accessToken: accessToken, refreshToken: refreshToken },
   })
 }
 
@@ -233,7 +233,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
         },
       })
     } else {
-      next(new AppError(STATUS.Unauthorized, 'Tài khoản đang bị khoá'))
+      next(new AppError(STATUS.Unauthorized, 'Tài khoản đang bị khoá', 'ACCOUT_HAS_BEEN_BLOCK'))
     }
   } else {
     // If not exists email then create new account

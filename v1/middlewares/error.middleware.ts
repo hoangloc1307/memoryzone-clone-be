@@ -6,9 +6,9 @@ const errorMiddleware = (err: AppError | any, req: Request, res: Response, next:
   switch (err.constructor.name) {
     case 'AppError':
       if (typeof err.error === 'string') {
-        res.status(err.status).json({ status: 'Error', message: err.error })
+        res.status(err.status).json({ status: 'Error', name: err.name, message: err.error })
       } else {
-        res.status(err.status).json({ status: 'Error', message: 'Lỗi', data: err.error })
+        res.status(err.status).json({ status: 'Error', name: err.name, message: 'Lỗi', data: err.error })
       }
       break
 

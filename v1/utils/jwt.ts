@@ -13,9 +13,9 @@ export const verifyToken = (token: string, secretKey: string) => {
         resolve(decoded as JwtPayload)
       } else {
         if (err.name === 'TokenExpiredError') {
-          reject(new AppError(STATUS.Unauthorized, 'Token hết hạn'))
+          reject(new AppError(STATUS.Unauthorized, 'Token hết hạn', 'TOKEN_EXPIRED'))
         } else {
-          reject(new AppError(STATUS.Unauthorized, 'Token không đúng'))
+          reject(new AppError(STATUS.Unauthorized, 'Token không đúng', 'TOKEN_ERROR'))
         }
       }
     })
