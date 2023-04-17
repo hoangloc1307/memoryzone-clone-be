@@ -34,6 +34,11 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
     },
   })
 
+  // Parse to array
+  if (product) {
+    product.shortInfo = JSON.parse(product.shortInfo)
+  }
+
   responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: product })
 }
 
@@ -42,7 +47,7 @@ const getProductVendors = async (req: Request, res: Response, next: NextFunction
   const vendors = await prismaClient.product.findMany({
     where: {
       vendor: {
-        not: null,
+        not: '',
       },
     },
     distinct: ['vendor'],

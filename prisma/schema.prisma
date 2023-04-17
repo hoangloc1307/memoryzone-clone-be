@@ -78,14 +78,14 @@ model Order {
 
 model Product {
   id                Int                     @id @default(autoincrement())
-  name              String?
-  price             Int?
-  priceDiscount     Int?                    @map("price_discount")
+  name              String                  @default("")
+  price             Int                     @default(0)
+  priceDiscount     Int                     @default(0) @map("price_discount")
   view              Int                     @default(0)
-  quantity          Int?
-  shortInfo         String?                 @map("short_info") @db.Text
-  vendor            String?
-  description       String?                 @db.Text
+  quantity          Int                     @default(0)
+  shortInfo         String                  @default("[]") @map("short_info") @db.Text
+  vendor            String                  @default("")
+  description       String                  @default("") @db.Text
   slug              String?                 @unique
   productTypeId     Int?                    @map("product_type_id")
   createdAt         DateTime                @default(now()) @map("created_at")
