@@ -123,9 +123,18 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 // [DELETE] /auth/logout
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   // Delete token in database
-  await prismaClient.token.delete({
+  await prismaClient.user.update({
     where: {
-      accountId: req.jwtDecoded.id,
+      id: req.jwtDecoded.id,
+    },
+    data: {
+      account: {
+        update: {
+          token: {
+            delete: true,
+          },
+        },
+      },
     },
   })
 

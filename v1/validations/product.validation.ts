@@ -1,14 +1,6 @@
 import { body } from 'express-validator'
 
 const updateProduct = [
-  body('id')
-    .notEmpty()
-    .withMessage('Không được để trống')
-    .not()
-    .isString()
-    .withMessage('Phải là số')
-    .isNumeric({ no_symbols: true })
-    .withMessage('Không hợp lệ'),
   body('name')
     .if(body('name').exists({ checkNull: true, checkFalsy: true }))
     .trim(),

@@ -26,7 +26,7 @@ const verifyAccessToken = async (req: Request, res: Response, next: NextFunction
       next(err)
     }
   } else {
-    next(new AppError(STATUS.Unauthorized, 'Access token chưa được gửi', 'ACCESS_TOKEN_HAS_NOT_BEEN_SENT'))
+    next(new AppError(STATUS.BadRequest, 'Access token chưa được gửi', 'ACCESS_TOKEN_HAS_NOT_BEEN_SENT'))
   }
 }
 
@@ -44,7 +44,7 @@ const verifyRefreshToken = async (req: Request, res: Response, next: NextFunctio
         req.jwtDecoded = decoded
         next()
       } else {
-        next(new AppError(STATUS.BadRequest, 'Refresh token không tồn tại', 'REFRESH_TOKEN_NOT_EXISTS'))
+        next(new AppError(STATUS.Unauthorized, 'Refresh token không tồn tại', 'REFRESH_TOKEN_NOT_EXISTS'))
       }
     } catch (err) {
       next(err)
@@ -79,7 +79,7 @@ const verifyOAuthToken = async (req: Request, res: Response, next: NextFunction)
       next(err)
     }
   } else {
-    next(new AppError(STATUS.Unauthorized, 'Token chưa được gửi', 'TOKEN_HAS_NOT_BEEN_SENT'))
+    next(new AppError(STATUS.BadRequest, 'Token chưa được gửi', 'TOKEN_HAS_NOT_BEEN_SENT'))
   }
 }
 
@@ -107,7 +107,7 @@ const verifyAdmin = async (req: Request, res: Response, next: NextFunction) => {
       next(err)
     }
   } else {
-    next(new AppError(STATUS.Unauthorized, 'Access token chưa được gửi', 'ACCESS_TOKEN_HAS_NOT_BEEN_SENT'))
+    next(new AppError(STATUS.BadRequest, 'Access token chưa được gửi', 'ACCESS_TOKEN_HAS_NOT_BEEN_SENT'))
   }
 }
 

@@ -21,7 +21,7 @@ productRouter.post(
 )
 productRouter.post('/drafts', authMiddleware.verifyAdmin, catchError(productController.addDraftProduct))
 productRouter.patch(
-  '/update',
+  '/:id',
   authMiddleware.verifyAdmin,
   productValidate.updateProduct,
   validationMiddleware.validatePayload,

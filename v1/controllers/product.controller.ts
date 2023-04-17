@@ -56,8 +56,8 @@ const getProductVendors = async (req: Request, res: Response, next: NextFunction
 
 // [PATCH] /products/update
 const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
+  const id = Number(req.params.id)
   const {
-    id,
     name,
     price,
     view,
