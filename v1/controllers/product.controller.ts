@@ -17,9 +17,18 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
     where: {
       id: Number(id),
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      priceDiscount: true,
+      quantity: true,
+      vendor: true,
+      shortInfo: true,
+      description: true,
+      productTypeId: true,
       productType: {
-        include: {
+        select: {
           productAttributes: {
             select: {
               id: true,
@@ -33,7 +42,6 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
       categories: true,
     },
   })
-
   // Parse to array
   if (product) {
     product.shortInfo = JSON.parse(product.shortInfo)
