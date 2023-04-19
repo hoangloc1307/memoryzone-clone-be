@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
-import { responseSuccess } from '../utils/response'
 import { STATUS } from '../constants/httpStatus'
 import prismaClient from '../utils/prisma'
-import AppError from '../utils/error'
+import { responseSuccess } from '../utils/response'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -26,9 +25,10 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
       vendor: true,
       shortInfo: true,
       description: true,
-      productTypeId: true,
       productType: {
         select: {
+          id: true,
+          type: true,
           productAttributes: {
             select: {
               id: true,
@@ -83,7 +83,33 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     isDraft,
     isPublish,
     slug,
+    productAttributes,
   } = req.body
+
+  const upsertArray = productAttributes.reduce((result: any[], current: any) => {
+    if (current.value) {
+      return [
+        ...result,
+        {
+          where: {
+            value_productId_productAttributeId: {
+              productAttributeId: current.productAttributeId,
+              productId: id,
+              value: current.value,
+            },
+          },
+          create: {
+            value: current.value,
+            productAttributeId: current.productAttributeId,
+          },
+          update: {
+            value: current.value,
+          },
+        },
+      ]
+    }
+    return [...result]
+  }, [])
 
   const product = await prismaClient.product.update({
     where: {
@@ -109,9 +135,16 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
             },
           }
         : undefined,
+      productAttributes:
+        productAttributes.length > 0
+          ? {
+              upsert: upsertArray,
+            }
+          : undefined,
     },
     include: {
       productType: true,
+      productAttributes: true,
     },
   })
   responseSuccess(res, STATUS.Ok, { message: 'Cập nhật sản phẩm thành công', data: product })
@@ -119,41 +152,54 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
 
 // [POST] /products/attributes
 const addProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
-  const { productTypeId, attributes } = req.body
+  const { attributes } = req.body
+  const { productTypeId } = req.params
 
-  const productType = await prismaClient.productType.findFirst({
+  const attributeArray = attributes.reduce(
+    (result: { create: { attribute: string }; where: { attribute: string } }[], current: string) => {
+      return [...result, { create: { attribute: current }, where: { attribute: current } }]
+    },
+    []
+  )
+
+  const data = await prismaClient.productType.update({
     where: {
-      id: productTypeId,
+      id: Number(productTypeId),
+    },
+    data: {
+      productAttributes: {
+        connectOrCreate: attributeArray,
+      },
+    },
+    include: {
+      productAttributes: true,
     },
   })
 
-  if (productType) {
-    const attributeArray = attributes.reduce((result: [{ attribute: string }], current: string) => {
-      return [...result, { attribute: current, productTypeId: productType.id }]
-    }, [])
-
-    const data = await prismaClient.productAttribute.createMany({
-      data: attributeArray,
-      skipDuplicates: true,
-    })
-
-    responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công', data: data })
-  } else {
-    next(new AppError(STATUS.NotFound, 'Không tìm thấy loại sản phẩm tương ứng', 'PRODUCT_TYPE_NOT_FOUND'))
-  }
+  responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công', data: data })
 }
 
 // [GET] /products/attributes
 const getProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
-  const { productTypeId } = req.body
+  const { productTypeId } = req.params
 
-  const attributes = await prismaClient.productAttribute.findMany({
+  const attributes = await prismaClient.productType.findUnique({
     where: {
-      productTypeId: productTypeId,
+      id: Number(productTypeId),
+    },
+    select: {
+      productAttributes: {
+        select: {
+          id: true,
+          attribute: true,
+        },
+      },
     },
   })
 
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: attributes })
+  const data = attributes?.productAttributes
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: data })
 }
 
 // [POST] /products/drafts

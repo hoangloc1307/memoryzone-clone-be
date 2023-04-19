@@ -116,15 +116,12 @@ model ProductType {
 }
 
 model ProductAttribute {
-  id            Int                     @id @default(autoincrement())
-  attribute     String
-  showOnFilter  Boolean                 @default(false) @map("show_on_filter")
-  productTypeId Int                     @map("product_type_id")
-  products      ProductAttributeValue[]
-  productType   ProductType             @relation(fields: [productTypeId], references: [id])
+  id           Int                     @id @default(autoincrement())
+  attribute    String                  @unique
+  showOnFilter Boolean                 @default(false) @map("show_on_filter")
+  products     ProductAttributeValue[]
+  productTypes ProductType[]
 
-  @@unique([productTypeId, attribute])
-  @@index([productTypeId])
   @@map("product_attribute")
 }
 
@@ -217,7 +214,7 @@ model Image {
   image      String
   alt        String?
   type       String
-  order      Int?
+  order      Int?      @default(0)
   productId  Int?      @map("product_id")
   categoryId Int?      @unique @map("category_id")
   banner     Banner?
