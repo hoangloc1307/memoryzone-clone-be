@@ -37,7 +37,12 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
           },
         },
       },
-      productAttributes: true,
+      productAttributes: {
+        select: {
+          productAttributeId: true,
+          value: true,
+        },
+      },
       images: true,
       categories: true,
     },
