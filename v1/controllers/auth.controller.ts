@@ -60,7 +60,11 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     },
     include: {
       token: true,
-      user: true,
+      user: {
+        include: {
+          avatar: true,
+        },
+      },
     },
   })
   if (account) {
@@ -75,7 +79,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           email: account.email,
           role: account.role,
           name: account.user.name,
-          avatar: account.user.avatar,
+          avatar: account.user.avatar?.image || null,
         }
 
         const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
@@ -149,7 +153,11 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
       userId: req.jwtDecoded.id,
     },
     include: {
-      user: true,
+      user: {
+        include: {
+          avatar: true,
+        },
+      },
     },
   })
 
@@ -158,7 +166,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
     email: account.email,
     role: account.role,
     name: account.user.name,
-    avatar: account.user.avatar,
+    avatar: account.user.avatar?.image || null,
   }
 
   // Generate new token and update to database
@@ -196,7 +204,11 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
     },
     include: {
       token: true,
-      user: true,
+      user: {
+        include: {
+          avatar: true,
+        },
+      },
     },
   })
   // Check email is exists
@@ -208,7 +220,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
         email: account.email,
         role: account.role,
         name: account.user.name,
-        avatar: account.user.avatar,
+        avatar: account.user.avatar?.image || null,
       }
 
       const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
@@ -260,7 +272,11 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
         },
       },
       include: {
-        user: true,
+        user: {
+          include: {
+            avatar: true,
+          },
+        },
       },
     })
 
@@ -270,7 +286,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
       email: account.email,
       role: account.role,
       name: account.user.name,
-      avatar: account.user.avatar,
+      avatar: account.user.avatar?.image || null,
     }
 
     const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {

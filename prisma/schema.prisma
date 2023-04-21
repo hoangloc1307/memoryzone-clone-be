@@ -17,18 +17,20 @@ model Account {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   userId    String    @unique @map("user_id")
-  token     Token?
   user      User      @relation(fields: [userId], references: [id])
+  token     Token?
 
   @@map("account")
 }
 
 model Token {
-  accountId    String  @unique @map("account_id")
+  accountId    String  @map("account_id")
   accessToken  String  @map("access_token") @db.Text
   refreshToken String  @map("refresh_token") @db.Text
   account      Account @relation(fields: [accountId], references: [id])
 
+  @@id([accountId])
+  @@index([accountId])
   @@map("token")
 }
 
@@ -39,13 +41,13 @@ model User {
   email            String
   phone            String?
   address          String?
-  avatar           String?
   type             UserType   @default(CUSTOMER)
+  avatar           Image?
   account          Account?
-  customerOrders   Order[]    @relation("CustomerOrder")
-  employeeOrders   Order[]    @relation("EmployeeOrder")
   productCarts     Cart[]
   productFeedbacks Feedback[]
+  customerOrders   Order[]    @relation("CustomerOrder")
+  employeeOrders   Order[]    @relation("EmployeeOrder")
 
   @@map("user")
 }
@@ -66,10 +68,10 @@ model Order {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime?     @updatedAt @map("updated_at")
   customerId    String        @map("customer_id")
-  employeeId    String        @map("employee_id")
+  employeeId    String?       @map("employee_id")
   products      OrderDetail[]
   customer      User          @relation("CustomerOrder", fields: [customerId], references: [id])
-  employee      User          @relation("EmployeeOrder", fields: [employeeId], references: [id])
+  employee      User?         @relation("EmployeeOrder", fields: [employeeId], references: [id])
 
   @@index([customerId])
   @@index([employeeId])
@@ -132,7 +134,7 @@ model ProductAttributeValue {
   productAttribute   ProductAttribute @relation(fields: [productAttributeId], references: [id])
   product            Product          @relation(fields: [productId], references: [id])
 
-  @@unique([value, productId, productAttributeId])
+  @@id([productId, productAttributeId])
   @@index([productId])
   @@index([productAttributeId])
   @@map("product_attribute_value")
@@ -145,7 +147,7 @@ model OrderDetail {
   product   Product @relation(fields: [productId], references: [id])
   order     Order   @relation(fields: [orderId], references: [id])
 
-  @@unique([productId, orderId])
+  @@id([productId, orderId])
   @@index([productId])
   @@index([orderId])
   @@map("order_detail")
@@ -158,7 +160,7 @@ model Cart {
   product   Product @relation(fields: [productId], references: [id])
   user      User    @relation(fields: [userId], references: [id])
 
-  @@unique([productId, userId])
+  @@id([productId, userId])
   @@index([productId])
   @@index([userId])
   @@map("cart")
@@ -168,13 +170,13 @@ model Feedback {
   productId Int       @map("product_id")
   userId    String    @map("user_id")
   rating    Int
-  comment   String    @db.Text
+  comment   String?   @db.Text
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
   product   Product   @relation(fields: [productId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
 
-  @@unique([productId, userId])
+  @@id([productId, userId])
   @@index([productId])
   @@index([userId])
   @@map("feedback")
@@ -193,19 +195,17 @@ model Promotion {
 }
 
 model Category {
-  id            Int         @id @default(autoincrement())
-  name          String?
-  parentId      Int         @map("parent_category_id")
-  productTypeId Int         @map("product_type_id")
-  products      Product[]
-  banners       Banner[]
-  categories    Category[]  @relation("SubCategories")
-  category      Category    @relation("SubCategories", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  productType   ProductType @relation(fields: [productTypeId], references: [id])
-  image         Image?
+  id           Int           @id @default(autoincrement())
+  name         String
+  parentId     Int?          @map("parent_category_id")
+  products     Product[]
+  banners      Banner[]
+  categories   Category[]    @relation("SubCategories")
+  category     Category?     @relation("SubCategories", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  productTypes ProductType[]
+  image        Image[]
 
   @@index([parentId])
-  @@index([productTypeId])
   @@map("category")
 }
 
@@ -216,25 +216,27 @@ model Image {
   type       String
   order      Int?      @default(0)
   productId  Int?      @map("product_id")
-  categoryId Int?      @unique @map("category_id")
+  categoryId Int?      @map("category_id")
+  userId     String?   @unique @map("user_id")
   banner     Banner?
+  User       User?     @relation(fields: [userId], references: [id])
   product    Product?  @relation(fields: [productId], references: [id])
   category   Category? @relation(fields: [categoryId], references: [id])
 
   @@index([productId])
+  @@index([categoryId])
+  @@index([userId])
   @@map("image")
 }
 
 model Banner {
-  id         Int       @id @default(autoincrement())
-  linkTo     String    @map("link_to")
+  id         Int        @id @default(autoincrement())
+  linkTo     String     @map("link_to")
   position   String
-  imageId    Int       @unique @map("image_id")
-  categoryId Int?      @map("category_id")
-  image      Image     @relation(fields: [imageId], references: [id])
-  Category   Category? @relation(fields: [categoryId], references: [id])
+  imageId    Int        @unique @map("image_id")
+  image      Image      @relation(fields: [imageId], references: [id])
+  categories Category[]
 
-  @@index([categoryId])
   @@map("banner")
 }
 
