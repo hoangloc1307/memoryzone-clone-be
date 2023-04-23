@@ -2,6 +2,9 @@ import { NextFunction, Request, Response } from 'express'
 import { STATUS } from '../constants/httpStatus'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
+import { imgurUpload } from '../utils/imgur'
+import AppError from '../utils/error'
+import { File } from 'buffer'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -223,6 +226,35 @@ const getProductTypes = async (req: Request, res: Response, next: NextFunction) 
   responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: types })
 }
 
+// POST /products/images
+const uploadImages = async (req: Request, res: Response, next: NextFunction) => {
+  const files = req.files
+  //  as { [fieldname: string]: Express.Multer.File[] }
+  // const productImages = files['productImages']
+
+  console.log(files)
+
+  res.send('data')
+
+  // if (productImages && productImages.length > 0) {
+  //   const values = await imgurUpload(productImages)
+
+  //   const images = values.reduce((result: any, current) => {
+  //     const data = current.data.data
+  //     return [
+  //       ...result,
+  //       prismaClient.image.create({ data: { link: data.link, name: data.name, type: 'PRODUCT_IMAGE' } }),
+  //     ]
+  //   }, [])
+
+  //   const data = await prismaClient.$transaction(images)
+
+  //   responseSuccess(res, STATUS.Created, { message: 'Upload hình ảnh thành công', data: data })
+  // } else {
+  //   next(new AppError(STATUS.BadRequest, 'Không có hình nào được đính kèm', 'IMAGE_HAS_NOT_BEEN_SENT'))
+  // }
+}
+
 const productController = {
   getProducts,
   getProductById,
@@ -232,6 +264,7 @@ const productController = {
   addProductAttributes,
   addDraftProduct,
   updateProduct,
+  uploadImages,
 }
 
 export default productController

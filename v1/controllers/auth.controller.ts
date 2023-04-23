@@ -79,7 +79,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           email: account.email,
           role: account.role,
           name: account.user.name,
-          avatar: account.user.avatar?.image || null,
+          avatar: account.user.avatar?.link || null,
         }
 
         const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
@@ -166,7 +166,7 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
     email: account.email,
     role: account.role,
     name: account.user.name,
-    avatar: account.user.avatar?.image || null,
+    avatar: account.user.avatar?.link || null,
   }
 
   // Generate new token and update to database
@@ -220,7 +220,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
         email: account.email,
         role: account.role,
         name: account.user.name,
-        avatar: account.user.avatar?.image || null,
+        avatar: account.user.avatar?.link || null,
       }
 
       const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
@@ -286,7 +286,7 @@ const getAccessToken = async (req: Request, res: Response, next: NextFunction) =
       email: account.email,
       role: account.role,
       name: account.user.name,
-      avatar: account.user.avatar?.image || null,
+      avatar: account.user.avatar?.link || null,
     }
 
     const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {

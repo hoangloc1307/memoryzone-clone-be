@@ -211,9 +211,10 @@ model Category {
 
 model Image {
   id         Int       @id @default(autoincrement())
-  image      String
+  link       String
   alt        String?
   type       String
+  name       String
   order      Int?      @default(0)
   productId  Int?      @map("product_id")
   categoryId Int?      @map("category_id")

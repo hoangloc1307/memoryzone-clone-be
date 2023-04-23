@@ -4,6 +4,7 @@ import authMiddleware from '../middlewares/auth.middleware'
 import validationMiddleware from '../middlewares/validation.middleware'
 import productValidate from '../validations/product.validation'
 import { catchError } from '../utils/response'
+import uploadMiddleware from '../middlewares/upload.middleware'
 
 const productRouter = Router()
 
@@ -23,6 +24,12 @@ productRouter.post(
   catchError(productController.addProductAttributes)
 )
 productRouter.post('/drafts', authMiddleware.verifyAdmin, catchError(productController.addDraftProduct))
+productRouter.post(
+  '/images',
+  authMiddleware.verifyAdmin,
+  uploadMiddleware.productImages,
+  catchError(productController.uploadImages)
+)
 
 // PATCH
 productRouter.patch(

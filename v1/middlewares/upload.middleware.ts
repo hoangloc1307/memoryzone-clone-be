@@ -2,7 +2,7 @@ import multer from 'multer'
 
 const upload = multer()
 
-const productImages = upload.fields([{ name: 'product-images', maxCount: 10 }])
+const productImages = upload.array('productImages[]', 10)
 
 const uploadMiddleware = {
   productImages,
