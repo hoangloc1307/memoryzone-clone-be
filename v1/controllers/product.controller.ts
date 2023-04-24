@@ -100,6 +100,18 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
 
     images = values.reduce((result: any, current: any) => {
       const data = current.data
+      if (name) {
+        return [
+          ...result,
+          {
+            deleteHash: data.deletehash,
+            link: data.link,
+            name: data.name,
+            type: 'PRODUCT_IMAGE',
+            alt: name,
+          },
+        ]
+      }
       return [
         ...result,
         {
