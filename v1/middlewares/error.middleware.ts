@@ -3,6 +3,7 @@ import { STATUS } from '../constants/httpStatus'
 import AppError from '../utils/error'
 
 const errorMiddleware = (err: AppError | any, req: Request, res: Response, next: NextFunction) => {
+  console.log(err)
   switch (err.constructor.name) {
     case 'AppError':
       if (typeof err.error === 'string') {

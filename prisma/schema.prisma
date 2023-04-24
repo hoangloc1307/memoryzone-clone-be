@@ -215,6 +215,7 @@ model Image {
   alt        String?
   type       String
   name       String
+  deleteHash String    @map("delete_hash")
   order      Int?      @default(0)
   productId  Int?      @map("product_id")
   categoryId Int?      @map("category_id")

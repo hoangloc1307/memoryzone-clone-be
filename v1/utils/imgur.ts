@@ -1,25 +1,29 @@
-import axios, { AxiosPromise } from 'axios'
+import { ImgurApiResponse, ImgurClient } from 'imgur'
 import { imgurConfig } from '../configs/imgur'
+import { ImageData } from 'imgur/lib/common/types'
+
+const imgurClient = new ImgurClient({
+  clientId: imgurConfig.ClientId,
+  clientSecret: imgurConfig.ClientSecret,
+  refreshToken: imgurConfig.RefreshToken,
+})
 
 export const imgurUpload = (images: Express.Multer.File[]) => {
-  const promiseArr: AxiosPromise[] = []
+  const promiseArr: Promise<ImgurApiResponse<ImageData>>[] = []
+
   images.forEach(image => {
     promiseArr.push(
-      axios.postForm(
-        'https://api.imgur.com/3/image',
-        {
-          image: image.buffer,
-          album: '46td1aG',
-          type: 'file',
-          name: image.originalname,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${imgurConfig.AccessToken}`,
-          },
-        }
-      )
+      imgurClient.upload({
+        image: image.buffer,
+        type: 'stream',
+        album: imgurConfig.AlbumProductsId,
+        name: image.originalname,
+      })
     )
   })
   return Promise.all(promiseArr)
+}
+
+export const imgurDelete = (deleteHash: string) => {
+  return imgurClient.deleteImage(deleteHash)
 }

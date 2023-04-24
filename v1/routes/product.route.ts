@@ -24,18 +24,20 @@ productRouter.post(
   catchError(productController.addProductAttributes)
 )
 productRouter.post('/drafts', authMiddleware.verifyAdmin, catchError(productController.addDraftProduct))
-productRouter.post(
-  '/images',
-  authMiddleware.verifyAdmin,
-  uploadMiddleware.productImages,
-  catchError(productController.uploadImages)
-)
 
 // PATCH
+productRouter.patch(
+  '/images',
+  authMiddleware.verifyAdmin,
+  productValidate.deleteProductImage,
+  validationMiddleware.validatePayload,
+  catchError(productController.deleteProductImage)
+)
 productRouter.patch(
   '/:id',
   authMiddleware.verifyAdmin,
   productValidate.updateProduct,
+  uploadMiddleware.productImages,
   validationMiddleware.validatePayload,
   catchError(productController.updateProduct)
 )
