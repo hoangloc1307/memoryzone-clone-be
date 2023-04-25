@@ -111,7 +111,6 @@ model ProductType {
   id                Int                @id @default(autoincrement())
   type              String             @unique
   products          Product[]
-  categories        Category[]
   productAttributes ProductAttribute[]
 
   @@map("product_type")
@@ -128,7 +127,7 @@ model ProductAttribute {
 }
 
 model ProductAttributeValue {
-  value              String
+  value              String           @db.Text
   productAttributeId Int              @map("product_attribute_id")
   productId          Int              @map("product_id")
   productAttribute   ProductAttribute @relation(fields: [productAttributeId], references: [id])
@@ -195,15 +194,14 @@ model Promotion {
 }
 
 model Category {
-  id           Int           @id @default(autoincrement())
-  name         String
-  parentId     Int?          @map("parent_category_id")
-  products     Product[]
-  banners      Banner[]
-  categories   Category[]    @relation("SubCategories")
-  category     Category?     @relation("SubCategories", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  productTypes ProductType[]
-  image        Image[]
+  id         Int        @id @default(autoincrement())
+  name       String
+  parentId   Int?       @map("parent_category_id")
+  products   Product[]
+  banners    Banner[]
+  categories Category[] @relation("SubCategories")
+  category   Category?  @relation("SubCategories", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  image      Image[]
 
   @@index([parentId])
   @@map("category")

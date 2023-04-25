@@ -7,7 +7,14 @@ import AppError from '../utils/error'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: [] })
+  const products = await prismaClient.product.findMany({
+    include: {
+      images: true,
+      categories: true,
+      productType: true,
+    },
+  })
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: products })
 }
 
 // [GET] /products/:id
@@ -119,6 +126,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
           link: data.link,
           name: data.name,
           type: 'PRODUCT_IMAGE',
+          alt: 'Product image',
         },
       ]
     }, [])
@@ -130,15 +138,14 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
         ...result,
         {
           where: {
-            value_productId_productAttributeId: {
-              productAttributeId: current.productAttributeId,
+            productId_productAttributeId: {
+              productAttributeId: Number(current.productAttributeId),
               productId: id,
-              value: current.value,
             },
           },
           create: {
             value: current.value,
-            productAttributeId: current.productAttributeId,
+            productAttributeId: Number(current.productAttributeId),
           },
           update: {
             value: current.value,
@@ -155,10 +162,10 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     },
     data: {
       name: name ?? undefined,
-      price: price ?? undefined,
-      priceDiscount: priceDiscount ?? undefined,
+      price: price ? Number(price) : undefined,
+      priceDiscount: priceDiscount ? Number(priceDiscount) : undefined,
       view: view ?? undefined,
-      quantity: quantity ?? undefined,
+      quantity: quantity ? Number(quantity) : undefined,
       shortInfo: shortInfo && shortInfo.length >= 0 ? JSON.stringify(shortInfo) : undefined,
       vendor: vendor ?? undefined,
       description: description ?? undefined,
@@ -169,7 +176,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       productType: productTypeId
         ? {
             connect: {
-              id: productTypeId,
+              id: Number(productTypeId),
             },
           }
         : undefined,
@@ -252,10 +259,10 @@ const getProductAttributes = async (req: Request, res: Response, next: NextFunct
 
 // [POST] /products/drafts
 const addDraftProduct = async (req: Request, res: Response, next: NextFunction) => {
-  const product = await prismaClient.product.create({
-    data: {},
-  })
-  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: product })
+  // const product = await prismaClient.product.create({
+  //   data: {},
+  // })
+  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: 'product' })
 }
 
 // [GET] /products/types
