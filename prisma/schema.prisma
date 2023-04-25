@@ -94,6 +94,7 @@ model Product {
   updatedAt         DateTime?               @map("updated_at")
   isDraft           Boolean                 @default(true) @map("is_draft")
   isPublish         Boolean                 @default(false) @map("is_publish")
+  status            Boolean                 @default(true)
   categories        Category[]
   productAttributes ProductAttributeValue[]
   orders            OrderDetail[]

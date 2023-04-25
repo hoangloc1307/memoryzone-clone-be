@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { STATUS } from '../constants/httpStatus'
+import AppError from '../utils/error'
+import { imgurDelete, imgurUpload } from '../utils/imgur'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
-import { imgurDelete, imgurUpload } from '../utils/imgur'
-import AppError from '../utils/error'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -34,6 +34,9 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
       vendor: true,
       shortInfo: true,
       description: true,
+      slug: true,
+      isDraft: true,
+      isPublish: true,
       productType: {
         select: {
           id: true,
@@ -52,8 +55,16 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
           value: true,
         },
       },
-      images: true,
-      categories: true,
+      images: {
+        select: {
+          id: true,
+          alt: true,
+          deleteHash: true,
+          name: true,
+          link: true,
+          order: true,
+        },
+      },
     },
   })
   // Parse to array
@@ -94,12 +105,13 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     priceDiscount,
     description,
     shortInfo,
-    productTypeId,
+    typeId,
     isDraft,
     isPublish,
     slug,
-    productAttributes = [],
+    attributes,
   } = req.body
+
   let images = []
 
   if (files && files.length > 0) {
@@ -107,32 +119,32 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
 
     images = values.reduce((result: any, current: any) => {
       const data = current.data
-      if (name) {
-        return [
-          ...result,
-          {
-            deleteHash: data.deletehash,
-            link: data.link,
-            name: data.name,
-            type: 'PRODUCT_IMAGE',
-            alt: name,
-          },
-        ]
-      }
-      return [
-        ...result,
-        {
-          deleteHash: data.deletehash,
-          link: data.link,
-          name: data.name,
-          type: 'PRODUCT_IMAGE',
-          alt: 'Product image',
-        },
-      ]
+
+      return name
+        ? [
+            ...result,
+            {
+              deleteHash: data.deletehash,
+              link: data.link,
+              name: data.name,
+              type: 'PRODUCT_IMAGE',
+              alt: name,
+            },
+          ]
+        : [
+            ...result,
+            {
+              deleteHash: data.deletehash,
+              link: data.link,
+              name: data.name,
+              type: 'PRODUCT_IMAGE',
+              alt: 'Product image',
+            },
+          ]
     }, [])
   }
 
-  const upsertArray = productAttributes.reduce((result: any[], current: any) => {
+  const upsertArray = attributes.reduce((result: any[], current: any) => {
     if (current.value) {
       return [
         ...result,
@@ -173,15 +185,15 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       isDraft: isDraft ?? undefined,
       isPublish: isPublish ?? undefined,
       slug: slug ?? undefined,
-      productType: productTypeId
+      productType: typeId
         ? {
             connect: {
-              id: Number(productTypeId),
+              id: Number(typeId),
             },
           }
         : undefined,
       productAttributes:
-        productAttributes.length > 0
+        attributes.length > 0
           ? {
               upsert: upsertArray,
             }
@@ -195,10 +207,46 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
             }
           : undefined,
     },
-    include: {
-      productType: true,
-      productAttributes: true,
-      images: true,
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      priceDiscount: true,
+      quantity: true,
+      vendor: true,
+      shortInfo: true,
+      description: true,
+      slug: true,
+      isDraft: true,
+      isPublish: true,
+      productType: {
+        select: {
+          id: true,
+          type: true,
+          productAttributes: {
+            select: {
+              id: true,
+              attribute: true,
+            },
+          },
+        },
+      },
+      productAttributes: {
+        select: {
+          productAttributeId: true,
+          value: true,
+        },
+      },
+      images: {
+        select: {
+          id: true,
+          alt: true,
+          deleteHash: true,
+          name: true,
+          link: true,
+          order: true,
+        },
+      },
     },
   })
 
@@ -259,10 +307,10 @@ const getProductAttributes = async (req: Request, res: Response, next: NextFunct
 
 // [POST] /products/drafts
 const addDraftProduct = async (req: Request, res: Response, next: NextFunction) => {
-  // const product = await prismaClient.product.create({
-  //   data: {},
-  // })
-  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: 'product' })
+  const product = await prismaClient.product.create({
+    data: {},
+  })
+  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: product })
 }
 
 // [GET] /products/types
@@ -277,9 +325,20 @@ const getProductTypes = async (req: Request, res: Response, next: NextFunction) 
 const deleteProductImage = async (req: Request, res: Response, next: NextFunction) => {
   const { imageId, deleteHash } = req.body
   const imgRes = await imgurDelete(deleteHash)
+
   if (imgRes.success) {
-    const data = await prismaClient.image.delete({ where: { id: imageId } })
-    responseSuccess(res, STATUS.Ok, { message: 'Xoá hình ảnh thành công', data: data })
+    const image = await prismaClient.image.delete({
+      where: { id: imageId },
+      select: {
+        id: true,
+        alt: true,
+        deleteHash: true,
+        name: true,
+        link: true,
+        order: true,
+      },
+    })
+    responseSuccess(res, STATUS.Ok, { message: 'Xoá hình ảnh thành công', data: image })
   } else {
     next(new AppError(STATUS.InternalServerError, 'Xoá hình ảnh thất bại', 'IMGUR_DELETE_FAIL'))
   }
