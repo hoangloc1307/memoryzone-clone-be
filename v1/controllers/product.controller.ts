@@ -92,165 +92,35 @@ const getProductVendors = async (req: Request, res: Response, next: NextFunction
   responseSuccess(res, STATUS.Ok, { message: 'Lấy thương hiệu thành công', data: data })
 }
 
-// [PATCH] /products/update
-const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
-  const id = Number(req.params.id)
-  const files = req.files as Express.Multer.File[]
-  const {
-    name,
-    price,
-    view,
-    quantity,
-    vendor,
-    priceDiscount,
-    description,
-    shortInfo,
-    typeId,
-    isDraft,
-    isPublish,
-    slug,
-    attributes,
-  } = req.body
+// [GET] /products/attributes
+const getProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
+  const { productTypeId } = req.params
 
-  let images = []
-
-  if (files && files.length > 0) {
-    const values = await imgurUpload(files)
-
-    images = values.reduce((result: any, current: any) => {
-      const data = current.data
-
-      return name
-        ? [
-            ...result,
-            {
-              deleteHash: data.deletehash,
-              link: data.link,
-              name: data.name,
-              type: 'PRODUCT_IMAGE',
-              alt: name,
-            },
-          ]
-        : [
-            ...result,
-            {
-              deleteHash: data.deletehash,
-              link: data.link,
-              name: data.name,
-              type: 'PRODUCT_IMAGE',
-              alt: 'Product image',
-            },
-          ]
-    }, [])
-  }
-
-  const upsertArray = attributes.reduce((result: any[], current: any) => {
-    if (current.value) {
-      return [
-        ...result,
-        {
-          where: {
-            productId_productAttributeId: {
-              productAttributeId: Number(current.productAttributeId),
-              productId: id,
-            },
-          },
-          create: {
-            value: current.value,
-            productAttributeId: Number(current.productAttributeId),
-          },
-          update: {
-            value: current.value,
-          },
-        },
-      ]
-    }
-    return [...result]
-  }, [])
-
-  const product = await prismaClient.product.update({
+  const attributes = await prismaClient.productType.findUnique({
     where: {
-      id: id,
-    },
-    data: {
-      name: name ?? undefined,
-      price: price ? Number(price) : undefined,
-      priceDiscount: priceDiscount ? Number(priceDiscount) : undefined,
-      view: view ?? undefined,
-      quantity: quantity ? Number(quantity) : undefined,
-      shortInfo: shortInfo && shortInfo.length >= 0 ? JSON.stringify(shortInfo) : undefined,
-      vendor: vendor ?? undefined,
-      description: description ?? undefined,
-      updatedAt: new Date().toISOString(),
-      isDraft: isDraft ?? undefined,
-      isPublish: isPublish ?? undefined,
-      slug: slug ?? undefined,
-      productType: typeId
-        ? {
-            connect: {
-              id: Number(typeId),
-            },
-          }
-        : undefined,
-      productAttributes:
-        attributes.length > 0
-          ? {
-              upsert: upsertArray,
-            }
-          : undefined,
-      images:
-        images.length > 0
-          ? {
-              createMany: {
-                data: images,
-              },
-            }
-          : undefined,
+      id: Number(productTypeId),
     },
     select: {
-      id: true,
-      name: true,
-      price: true,
-      priceDiscount: true,
-      quantity: true,
-      vendor: true,
-      shortInfo: true,
-      description: true,
-      slug: true,
-      isDraft: true,
-      isPublish: true,
-      productType: {
-        select: {
-          id: true,
-          type: true,
-          productAttributes: {
-            select: {
-              id: true,
-              attribute: true,
-            },
-          },
-        },
-      },
       productAttributes: {
         select: {
-          productAttributeId: true,
-          value: true,
-        },
-      },
-      images: {
-        select: {
           id: true,
-          alt: true,
-          deleteHash: true,
-          name: true,
-          link: true,
-          order: true,
+          attribute: true,
         },
       },
     },
   })
 
-  responseSuccess(res, STATUS.Ok, { message: 'Cập nhật sản phẩm thành công', data: product })
+  const data = attributes?.productAttributes
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: data })
+}
+
+// [GET] /products/types
+const getProductTypes = async (req: Request, res: Response, next: NextFunction) => {
+  const types = await prismaClient.productType.findMany()
+
+  // const data = vendors.reduce((result: string[], current) => [...result, current.vendor as string], [])
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: types })
 }
 
 // [POST] /products/attributes
@@ -282,29 +152,6 @@ const addProductAttributes = async (req: Request, res: Response, next: NextFunct
   responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công', data: data })
 }
 
-// [GET] /products/attributes
-const getProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
-  const { productTypeId } = req.params
-
-  const attributes = await prismaClient.productType.findUnique({
-    where: {
-      id: Number(productTypeId),
-    },
-    select: {
-      productAttributes: {
-        select: {
-          id: true,
-          attribute: true,
-        },
-      },
-    },
-  })
-
-  const data = attributes?.productAttributes
-
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: data })
-}
-
 // [POST] /products/drafts
 const addDraftProduct = async (req: Request, res: Response, next: NextFunction) => {
   const product = await prismaClient.product.create({
@@ -313,15 +160,135 @@ const addDraftProduct = async (req: Request, res: Response, next: NextFunction) 
   responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: product })
 }
 
-// [GET] /products/types
-const getProductTypes = async (req: Request, res: Response, next: NextFunction) => {
-  const types = await prismaClient.productType.findMany()
+// [PATCH] /products/update
+const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
+  const id = Number(req.params.id)
+  const files = req.files as Express.Multer.File[]
+  const {
+    name,
+    price,
+    quantity,
+    vendor,
+    priceDiscount,
+    description,
+    shortInfo,
+    typeId,
+    isDraft,
+    isPublish,
+    slug,
+    attributes,
+  } = req.body
 
-  // const data = vendors.reduce((result: string[], current) => [...result, current.vendor as string], [])
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: types })
+  let imagesCreateMany = []
+
+  if (files && files.length > 0) {
+    const values = await imgurUpload(files)
+
+    imagesCreateMany = values.reduce((result: any, current: any) => {
+      const data = current.data
+
+      return name
+        ? [
+            ...result,
+            {
+              deleteHash: data.deletehash,
+              link: data.link,
+              name: data.name,
+              type: 'PRODUCT_IMAGE',
+              alt: name,
+            },
+          ]
+        : [
+            ...result,
+            {
+              deleteHash: data.deletehash,
+              link: data.link,
+              name: data.name,
+              type: 'PRODUCT_IMAGE',
+              alt: 'Product image',
+            },
+          ]
+    }, [])
+  }
+
+  const upsertArray = attributes
+    ? attributes.reduce((result: any[], current: any) => {
+        if (current.value) {
+          return [
+            ...result,
+            {
+              where: {
+                productId_productAttributeId: {
+                  productAttributeId: Number(current.productAttributeId),
+                  productId: id,
+                },
+              },
+              create: {
+                value: current.value,
+                productAttributeId: Number(current.productAttributeId),
+              },
+              update: {
+                value: current.value,
+              },
+            },
+          ]
+        }
+        return [...result]
+      }, [])
+    : undefined
+
+  const product = await prismaClient.product.update({
+    where: {
+      id: id,
+    },
+    data: {
+      name: name ?? undefined,
+      price: price ? Number(price) : undefined,
+      priceDiscount: priceDiscount ? Number(priceDiscount) : undefined,
+      quantity: quantity ? Number(quantity) : undefined,
+      shortInfo: shortInfo && shortInfo.length >= 0 ? JSON.stringify(shortInfo) : undefined,
+      vendor: vendor ?? undefined,
+      description: description ?? undefined,
+      updatedAt: new Date().toISOString(),
+      isDraft: isDraft ?? undefined,
+      isPublish: isPublish ?? undefined,
+      slug: slug ?? undefined,
+      productType: typeId ? { connect: { id: Number(typeId) } } : undefined,
+      productAttributes: attributes ? { upsert: upsertArray } : undefined,
+      images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+    },
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      priceDiscount: true,
+      quantity: true,
+      vendor: true,
+      shortInfo: true,
+      description: true,
+      slug: true,
+      isDraft: true,
+      isPublish: true,
+      productType: {
+        select: {
+          id: true,
+          type: true,
+          productAttributes: { select: { id: true, attribute: true } },
+        },
+      },
+      productAttributes: {
+        select: { productAttributeId: true, value: true },
+      },
+      images: {
+        select: { id: true, alt: true, deleteHash: true, name: true, link: true, order: true },
+      },
+    },
+  })
+
+  responseSuccess(res, STATUS.Ok, { message: 'Cập nhật sản phẩm thành công', data: product })
 }
 
-// [DELETE] /products/images
+// [PATCH] /products/images
 const deleteProductImage = async (req: Request, res: Response, next: NextFunction) => {
   const { imageId, deleteHash } = req.body
   const imgRes = await imgurDelete(deleteHash)

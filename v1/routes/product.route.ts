@@ -11,11 +11,12 @@ const productRouter = Router()
 // GET
 productRouter.get('/', catchError(productController.getProducts))
 productRouter.get('/vendors', catchError(productController.getProductVendors))
-productRouter.get('/attributes/:productTypeId', catchError(productController.getProductAttributes))
 productRouter.get('/types', catchError(productController.getProductTypes))
+productRouter.get('/attributes/:productTypeId', catchError(productController.getProductAttributes))
 productRouter.get('/:id', catchError(productController.getProductById))
 
 // POST
+productRouter.post('/drafts', authMiddleware.verifyAdmin, catchError(productController.addDraftProduct))
 productRouter.post(
   '/attributes/:productTypeId',
   authMiddleware.verifyAdmin,
@@ -23,7 +24,6 @@ productRouter.post(
   validationMiddleware.validatePayload,
   catchError(productController.addProductAttributes)
 )
-productRouter.post('/drafts', authMiddleware.verifyAdmin, catchError(productController.addDraftProduct))
 
 // PATCH
 productRouter.patch(
