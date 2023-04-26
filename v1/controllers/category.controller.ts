@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
 import { STATUS } from '../constants/httpStatus'
+import { createCategoryTree } from '../utils/util'
 
 // [GET] /categories
 const getProductCategories = async (req: Request, res: Response, next: NextFunction) => {
@@ -11,7 +12,9 @@ const getProductCategories = async (req: Request, res: Response, next: NextFunct
     },
   })
 
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy danh mục thành công', data: categories })
+  const data = createCategoryTree(categories, null)
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy danh mục thành công', data: data })
 }
 
 const addCategory = async (req: Request, res: Response, next: NextFunction) => {
