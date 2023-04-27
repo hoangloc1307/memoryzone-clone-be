@@ -11,7 +11,6 @@ const getProductCategories = async (req: Request, res: Response, next: NextFunct
       parentId: 'asc',
     },
   })
-
   const data = createCategoryTree(categories, null)
 
   responseSuccess(res, STATUS.Ok, { message: 'Lấy danh mục thành công', data: data })
