@@ -15,5 +15,19 @@ categoryRouter.post(
   validationMiddleware.validatePayload,
   catchError(categoryController.addCategory)
 )
+categoryRouter.patch(
+  '/:id',
+  authMiddleware.verifyAdmin,
+  categoryValidate.updateCategory,
+  validationMiddleware.validatePayload,
+  catchError(categoryController.updateCategory)
+)
+categoryRouter.delete(
+  '/:id',
+  authMiddleware.verifyAdmin,
+  categoryValidate.deleteCategory,
+  validationMiddleware.validatePayload,
+  catchError(categoryController.deleteCategory)
+)
 
 export default categoryRouter

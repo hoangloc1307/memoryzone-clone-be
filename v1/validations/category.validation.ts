@@ -1,4 +1,4 @@
-import { body } from 'express-validator'
+import { body, param } from 'express-validator'
 
 const addCategory = [
   // Name
@@ -10,8 +10,25 @@ const addCategory = [
     .withMessage('Phải là số'),
 ]
 
+const updateCategory = [
+  param('id').trim().isNumeric({ no_symbols: true }).withMessage('Phải là số'),
+  // Name
+  body('name')
+    .if(body('name').exists({ values: 'null' }))
+    .trim(),
+  // Parent id
+  body('parentId')
+    .if(body('parentId').exists({ values: 'null' }))
+    .isNumeric({ no_symbols: true })
+    .withMessage('Phải là số'),
+]
+
+const deleteCategory = [param('id').trim().isNumeric({ no_symbols: true }).withMessage('Phải là số')]
+
 const categoryValidate = {
   addCategory,
+  updateCategory,
+  deleteCategory,
 }
 
 export default categoryValidate

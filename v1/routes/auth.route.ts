@@ -14,8 +14,8 @@ authRouter.post(
   catchError(authController.register)
 )
 authRouter.post('/login', authValidate.login, validationMiddleware.validatePayload, catchError(authController.login))
-authRouter.delete('/logout', authMiddleware.verifyAccessToken, catchError(authController.logout))
 authRouter.patch('/refresh-token', authMiddleware.verifyRefreshToken, catchError(authController.refreshToken))
+authRouter.delete('/logout', authMiddleware.verifyAccessToken, catchError(authController.logout))
 // authRouter.post('/get-access-token', authMiddleware.verifyOAuthToken, catchError(authController.getAccessToken))
 
 export default authRouter
