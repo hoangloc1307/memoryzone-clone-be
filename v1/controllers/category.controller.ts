@@ -7,9 +7,17 @@ import AppError from '../utils/error'
 // [GET] /category
 const getProductCategories = async (req: Request, res: Response, next: NextFunction) => {
   const categories = await prismaClient.category.findMany({
-    orderBy: {
-      parentId: 'asc',
-    },
+    orderBy: [
+      {
+        parentId: 'asc',
+      },
+      {
+        order: 'asc',
+      },
+      {
+        name: 'asc',
+      },
+    ],
   })
 
   const data = categories.map(category => (category.parentId === null ? { ...category, parentId: 0 } : category))
@@ -19,12 +27,13 @@ const getProductCategories = async (req: Request, res: Response, next: NextFunct
 
 // [POST] /category
 const addCategory = async (req: Request, res: Response, next: NextFunction) => {
-  const { name, parentId } = req.body
+  const { name, parentId, order } = req.body
 
   const category = await prismaClient.category.create({
     data: {
       name: name,
       parentId: parentId ? Number(parentId) : undefined,
+      order: order ? Number(order) : undefined,
     },
   })
 
@@ -33,10 +42,10 @@ const addCategory = async (req: Request, res: Response, next: NextFunction) => {
 
 // [PATCH] /category
 const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
-  const { name, parentId } = req.body
+  const { name, parentId, order } = req.body
   const id = Number(req.params.id)
 
-  if (name || (parentId !== null && parentId !== undefined)) {
+  if (name || (parentId !== null && parentId !== undefined) || (order !== null && order !== undefined)) {
     const category = await prismaClient.category.update({
       where: {
         id: id,
@@ -44,6 +53,7 @@ const updateCategory = async (req: Request, res: Response, next: NextFunction) =
       data: {
         name: name ?? undefined,
         parentId: parentId ?? undefined,
+        order: order ?? undefined,
       },
     })
 

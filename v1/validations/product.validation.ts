@@ -57,6 +57,11 @@ const updateProduct = [
     .if(body('attributes').exists({ values: 'null' }))
     .isArray()
     .withMessage('Phải là mảng'),
+  // Categories
+  body('categories')
+    .if(body('categories').exists({ values: 'null' }))
+    .isObject()
+    .withMessage('Phải là object'),
 ]
 
 const addProductAttributes = [

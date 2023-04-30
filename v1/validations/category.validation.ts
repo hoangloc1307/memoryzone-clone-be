@@ -8,9 +8,15 @@ const addCategory = [
     .if(body('parentId').exists({ values: 'null' }))
     .isNumeric({ no_symbols: true })
     .withMessage('Phải là số'),
+  // Order
+  body('order')
+    .if(body('order').exists({ values: 'null' }))
+    .isNumeric({ no_symbols: true })
+    .withMessage('Phải là số'),
 ]
 
 const updateCategory = [
+  // Id
   param('id').trim().isNumeric({ no_symbols: true }).withMessage('Phải là số'),
   // Name
   body('name')
@@ -19,6 +25,11 @@ const updateCategory = [
   // Parent id
   body('parentId')
     .if(body('parentId').exists({ values: 'null' }))
+    .isNumeric({ no_symbols: true })
+    .withMessage('Phải là số'),
+  // Order
+  body('order')
+    .if(body('order').exists({ values: 'null' }))
     .isNumeric({ no_symbols: true })
     .withMessage('Phải là số'),
 ]

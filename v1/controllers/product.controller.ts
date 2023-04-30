@@ -8,10 +8,29 @@ import { responseSuccess } from '../utils/response'
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   const products = await prismaClient.product.findMany({
-    include: {
-      images: true,
-      categories: true,
-      productType: true,
+    select: {
+      id: true,
+      images: {
+        select: {
+          link: true,
+          alt: true,
+        },
+        orderBy: {
+          id: 'asc',
+        },
+        take: 1,
+      },
+      name: true,
+      price: true,
+      priceDiscount: true,
+      productType: {
+        select: {
+          type: true,
+        },
+      },
+    },
+    orderBy: {
+      id: 'desc',
     },
   })
   responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: products })
@@ -63,6 +82,14 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
           name: true,
           link: true,
           order: true,
+        },
+      },
+      categories: {
+        select: {
+          id: true,
+          name: true,
+          order: true,
+          parentId: true,
         },
       },
     },
@@ -177,6 +204,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     isPublish,
     slug,
     attributes,
+    categories,
   } = req.body
 
   let imagesCreateMany = []
@@ -237,6 +265,15 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       }, [])
     : undefined
 
+  const connectCategories =
+    categories?.add && categories.add.length > 0
+      ? categories.add.map((item: string) => ({ id: Number(item) }))
+      : undefined
+  const disconnectCategories =
+    categories?.delete && categories.delete.length > 0
+      ? categories.delete.map((item: string) => ({ id: Number(item) }))
+      : undefined
+
   const product = await prismaClient.product.update({
     where: {
       id: id,
@@ -256,6 +293,10 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       productType: typeId ? { connect: { id: Number(typeId) } } : undefined,
       productAttributes: attributes ? { upsert: upsertArray } : undefined,
       images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+      categories: {
+        connect: connectCategories,
+        disconnect: disconnectCategories,
+      },
     },
     select: {
       id: true,
@@ -281,6 +322,9 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       },
       images: {
         select: { id: true, alt: true, deleteHash: true, name: true, link: true, order: true },
+      },
+      categories: {
+        select: { id: true, name: true, order: true, parentId: true },
       },
     },
   })
