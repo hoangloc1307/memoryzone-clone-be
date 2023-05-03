@@ -5,12 +5,12 @@
     "outDir": "dist",
     "strict": true,
     "sourceMap": true,
-    "lib": ["ESNext"],
+    "lib": ["ES2015", "DOM"],
     "moduleResolution": "node",
     "esModuleInterop": true,
     "baseUrl": "../v1",
     "typeRoots": ["v1/@types"]
   },
-  "include": ["v1/**/*"],
+  "include": ["v1/**/*", "app.ts"],
   "files": ["v1/@types/response.type.d.ts"]
 }
