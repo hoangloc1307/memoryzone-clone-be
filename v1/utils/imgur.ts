@@ -27,3 +27,11 @@ export const imgurUpload = (images: Express.Multer.File[]) => {
 export const imgurDelete = (deleteHash: string) => {
   return imgurClient.deleteImage(deleteHash)
 }
+
+export const imgurGetAlbums = () => {
+  return imgurClient.getAlbums(imgurConfig.Account)
+}
+
+export const imgurGetAlbumImages = (albumId: string) => {
+  return imgurClient.getAlbum(albumId)
+}
