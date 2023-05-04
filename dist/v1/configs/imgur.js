@@ -9,5 +9,7 @@ exports.imgurConfig = {
     AccessToken: process.env.IMGUR_ACCESS_TOKEN,
     RefreshToken: process.env.IMGUR_REFRESH_TOKEN,
     AlbumProductsId: '46td1aG',
+    AccountId: 166834321,
+    Account: 'hoangloc1307',
 };
 //# sourceMappingURL=imgur.js.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.imgurDelete = exports.imgurUpload = void 0;
+exports.imgurGetAlbumImages = exports.imgurGetAlbums = exports.imgurDelete = exports.imgurUpload = void 0;
 const imgur_1 = require("imgur");
 const imgur_2 = require("../configs/imgur");
 const imgurClient = new imgur_1.ImgurClient({
@@ -25,4 +25,12 @@ const imgurDelete = (deleteHash) => {
     return imgurClient.deleteImage(deleteHash);
 };
 exports.imgurDelete = imgurDelete;
+const imgurGetAlbums = () => {
+    return imgurClient.getAlbums(imgur_2.imgurConfig.Account);
+};
+exports.imgurGetAlbums = imgurGetAlbums;
+const imgurGetAlbumImages = (albumId) => {
+    return imgurClient.getAlbum(albumId);
+};
+exports.imgurGetAlbumImages = imgurGetAlbumImages;
 //# sourceMappingURL=imgur.js.map
