@@ -19,33 +19,44 @@ const prisma_1 = __importDefault(require("../utils/prisma"));
 const response_1 = require("../utils/response");
 // [GET] /products
 const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const products = yield prisma_1.default.product.findMany({
-        select: {
-            id: true,
-            images: {
-                select: {
-                    link: true,
-                    alt: true,
+    const { limit, page } = req.query;
+    const [totalRow, products] = yield prisma_1.default.$transaction([
+        prisma_1.default.product.count({}),
+        prisma_1.default.product.findMany({
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                priceDiscount: true,
+                images: {
+                    select: {
+                        link: true,
+                        alt: true,
+                    },
+                    orderBy: {
+                        id: 'asc',
+                    },
+                    take: 1,
                 },
-                orderBy: {
-                    id: 'asc',
+                productType: {
+                    select: {
+                        type: true,
+                    },
                 },
-                take: 1,
             },
-            name: true,
-            price: true,
-            priceDiscount: true,
-            productType: {
-                select: {
-                    type: true,
-                },
+            orderBy: {
+                id: 'desc',
             },
-        },
-        orderBy: {
-            id: 'desc',
-        },
-    });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: products });
+            take: Number(limit),
+            skip: (Number(page) - 1) * Number(limit),
+        }),
+    ]);
+    const pagination = {
+        limit: Number(limit),
+        page: Number(page),
+        total: totalRow,
+    };
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: { pagination, products } });
 });
 // [GET] /products/:id
 const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

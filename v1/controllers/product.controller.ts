@@ -7,33 +7,47 @@ import { responseSuccess } from '../utils/response'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-  const products = await prismaClient.product.findMany({
-    select: {
-      id: true,
-      images: {
-        select: {
-          link: true,
-          alt: true,
+  const { limit, page } = req.query
+
+  const [totalRow, products] = await prismaClient.$transaction([
+    prismaClient.product.count({}),
+    prismaClient.product.findMany({
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        priceDiscount: true,
+        images: {
+          select: {
+            link: true,
+            alt: true,
+          },
+          orderBy: {
+            id: 'asc',
+          },
+          take: 1,
         },
-        orderBy: {
-          id: 'asc',
+        productType: {
+          select: {
+            type: true,
+          },
         },
-        take: 1,
       },
-      name: true,
-      price: true,
-      priceDiscount: true,
-      productType: {
-        select: {
-          type: true,
-        },
+      orderBy: {
+        id: 'desc',
       },
-    },
-    orderBy: {
-      id: 'desc',
-    },
-  })
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: products })
+      take: Number(limit),
+      skip: (Number(page) - 1) * Number(limit),
+    }),
+  ])
+
+  const pagination = {
+    limit: Number(limit),
+    page: Number(page),
+    total: totalRow,
+  }
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: { pagination, products } })
 }
 
 // [GET] /products/:id
