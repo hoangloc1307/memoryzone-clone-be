@@ -45,9 +45,19 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     },
                     take: 1,
                 },
+                userFeedbacks: {
+                    select: {
+                        rating: true,
+                    },
+                },
                 productType: {
                     select: {
                         type: true,
+                    },
+                },
+                categories: {
+                    select: {
+                        name: true,
                     },
                 },
             },
@@ -68,7 +78,29 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         page: Number(page),
         total: totalRow,
     };
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: { pagination, products } });
+    console.log(products[4]);
+    const productResponse = products.reduce((result, current) => {
+        var _a, _b;
+        return [
+            ...result,
+            {
+                id: current.id,
+                name: current.name,
+                image: (_a = current.images[0]) === null || _a === void 0 ? void 0 : _a.link,
+                price: current.price,
+                priceDiscount: current.priceDiscount,
+                type: (_b = current.productType) === null || _b === void 0 ? void 0 : _b.type,
+                quantity: current.quantity,
+                rating: current.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / current.userFeedbacks.length,
+                categories: current.categories.map(item => item.name),
+            },
+        ];
+    }, []);
+    const responseData = {
+        pagination,
+        products: productResponse,
+    };
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData });
 });
 // [GET] /products/:id
 const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

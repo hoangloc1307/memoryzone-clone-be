@@ -4,6 +4,7 @@ import AppError from '../utils/error'
 import { imgurDelete, imgurUpload } from '../utils/imgur'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
+import { ProductManageList } from '../types/product.type'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -34,9 +35,19 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
           },
           take: 1,
         },
+        userFeedbacks: {
+          select: {
+            rating: true,
+          },
+        },
         productType: {
           select: {
             type: true,
+          },
+        },
+        categories: {
+          select: {
+            name: true,
           },
         },
       },
@@ -59,7 +70,30 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     total: totalRow,
   }
 
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: { pagination, products } })
+  console.log(products[4])
+
+  const productResponse = products.reduce((result: ProductManageList[], current) => {
+    return [
+      ...result,
+      {
+        id: current.id,
+        name: current.name,
+        image: current.images[0]?.link,
+        price: current.price,
+        priceDiscount: current.priceDiscount,
+        type: current.productType?.type,
+        quantity: current.quantity,
+        rating: current.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / current.userFeedbacks.length,
+        categories: current.categories.map(item => item.name),
+      },
+    ]
+  }, [])
+  const responseData = {
+    pagination,
+    products: productResponse,
+  }
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData })
 }
 
 // [GET] /products/:id
