@@ -19,15 +19,22 @@ const prisma_1 = __importDefault(require("../utils/prisma"));
 const response_1 = require("../utils/response");
 // [GET] /products
 const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { limit, page } = req.query;
+    const { limit, page, name } = req.query;
     const [totalRow, products] = yield prisma_1.default.$transaction([
-        prisma_1.default.product.count({}),
+        prisma_1.default.product.count({
+            where: {
+                name: {
+                    contains: name ? String(name) : undefined,
+                },
+            },
+        }),
         prisma_1.default.product.findMany({
             select: {
                 id: true,
                 name: true,
                 price: true,
                 priceDiscount: true,
+                quantity: true,
                 images: {
                     select: {
                         link: true,
@@ -44,11 +51,16 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     },
                 },
             },
+            where: {
+                name: {
+                    contains: name ? String(name) : undefined,
+                },
+            },
             orderBy: {
                 id: 'desc',
             },
-            take: Number(limit),
-            skip: (Number(page) - 1) * Number(limit),
+            take: Number(limit) || undefined,
+            skip: Number(limit) && Number(page) ? (Number(page) - 1) * Number(limit) : undefined,
         }),
     ]);
     const pagination = {

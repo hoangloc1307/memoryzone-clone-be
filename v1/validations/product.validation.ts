@@ -1,4 +1,21 @@
-import { body } from 'express-validator'
+import { body, query } from 'express-validator'
+
+const getProducts = [
+  // Page
+  query('page')
+    .if(query('page').exists({ values: 'null' }))
+    .isInt({ allow_leading_zeroes: false, min: 1 })
+    .withMessage('Phải là số lớn hơn hoặc bằng 1'),
+  // Limit
+  query('limit')
+    .if(query('limit').exists({ values: 'null' }))
+    .isInt({ allow_leading_zeroes: false, min: 1 })
+    .withMessage('Phải là số lớn hơn hoặc bằng 1'),
+  // Name
+  query('name')
+    .if(query('name').exists({ values: 'null' }))
+    .trim(),
+]
 
 const updateProduct = [
   // Name
@@ -81,6 +98,7 @@ const deleteProductImage = [
 ]
 
 const productValidate = {
+  getProducts,
   updateProduct,
   deleteProductImage,
   addProductAttributes,

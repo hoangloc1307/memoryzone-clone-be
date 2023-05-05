@@ -7,16 +7,23 @@ import { responseSuccess } from '../utils/response'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
-  const { limit, page } = req.query
+  const { limit, page, name } = req.query
 
   const [totalRow, products] = await prismaClient.$transaction([
-    prismaClient.product.count({}),
+    prismaClient.product.count({
+      where: {
+        name: {
+          contains: name ? String(name) : undefined,
+        },
+      },
+    }),
     prismaClient.product.findMany({
       select: {
         id: true,
         name: true,
         price: true,
         priceDiscount: true,
+        quantity: true,
         images: {
           select: {
             link: true,
@@ -33,11 +40,16 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
           },
         },
       },
+      where: {
+        name: {
+          contains: name ? String(name) : undefined,
+        },
+      },
       orderBy: {
         id: 'desc',
       },
-      take: Number(limit),
-      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit) || undefined,
+      skip: Number(limit) && Number(page) ? (Number(page) - 1) * Number(limit) : undefined,
     }),
   ])
 

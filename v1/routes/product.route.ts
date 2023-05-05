@@ -9,7 +9,12 @@ import uploadMiddleware from '../middlewares/upload.middleware'
 const productRouter = Router()
 
 // GET
-productRouter.get('/', catchError(productController.getProducts))
+productRouter.get(
+  '/',
+  productValidate.getProducts,
+  validationMiddleware.validatePayload,
+  catchError(productController.getProducts)
+)
 productRouter.get('/vendors', catchError(productController.getProductVendors))
 productRouter.get('/types', catchError(productController.getProductTypes))
 productRouter.get('/attributes/:productTypeId', catchError(productController.getProductAttributes))

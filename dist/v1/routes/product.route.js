@@ -12,7 +12,7 @@ const response_1 = require("../utils/response");
 const upload_middleware_1 = __importDefault(require("../middlewares/upload.middleware"));
 const productRouter = (0, express_1.Router)();
 // GET
-productRouter.get('/', (0, response_1.catchError)(product_controller_1.default.getProducts));
+productRouter.get('/', product_validation_1.default.getProducts, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.getProducts));
 productRouter.get('/vendors', (0, response_1.catchError)(product_controller_1.default.getProductVendors));
 productRouter.get('/types', (0, response_1.catchError)(product_controller_1.default.getProductTypes));
 productRouter.get('/attributes/:productTypeId', (0, response_1.catchError)(product_controller_1.default.getProductAttributes));

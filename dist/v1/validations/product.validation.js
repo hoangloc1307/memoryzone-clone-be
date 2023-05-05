@@ -1,6 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_validator_1 = require("express-validator");
+const getProducts = [
+    // Page
+    (0, express_validator_1.query)('page')
+        .if((0, express_validator_1.query)('page').exists({ values: 'null' }))
+        .isInt({ allow_leading_zeroes: false, min: 1 })
+        .withMessage('Phải là số lớn hơn hoặc bằng 1'),
+    // Limit
+    (0, express_validator_1.query)('limit')
+        .if((0, express_validator_1.query)('limit').exists({ values: 'null' }))
+        .isInt({ allow_leading_zeroes: false, min: 1 })
+        .withMessage('Phải là số lớn hơn hoặc bằng 1'),
+    // Name
+    (0, express_validator_1.query)('name')
+        .if((0, express_validator_1.query)('name').exists({ values: 'null' }))
+        .trim(),
+];
 const updateProduct = [
     // Name
     (0, express_validator_1.body)('name')
@@ -79,6 +95,7 @@ const deleteProductImage = [
     (0, express_validator_1.body)('deleteHash').notEmpty().withMessage('Không được để trống'),
 ];
 const productValidate = {
+    getProducts,
     updateProduct,
     deleteProductImage,
     addProductAttributes,
