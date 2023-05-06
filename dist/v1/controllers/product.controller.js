@@ -78,7 +78,6 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         page: Number(page),
         total: totalRow,
     };
-    console.log(products[4]);
     const productResponse = products.reduce((result, current) => {
         var _a, _b;
         return [
@@ -104,8 +103,9 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 });
 // [GET] /products/:id
 const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { id } = req.params;
-    const product = yield prisma_1.default.product.findUnique({
+    const product = yield prisma_1.default.product.findUniqueOrThrow({
         where: {
             id: Number(id),
         },
@@ -125,16 +125,15 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 select: {
                     id: true,
                     type: true,
-                    productAttributes: {
-                        select: {
-                            id: true,
-                            attribute: true,
-                        },
-                    },
                 },
             },
             productAttributes: {
                 select: {
+                    productAttribute: {
+                        select: {
+                            attribute: true,
+                        },
+                    },
                     productAttributeId: true,
                     value: true,
                 },
@@ -153,17 +152,33 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
                 select: {
                     id: true,
                     name: true,
-                    order: true,
-                    parentId: true,
                 },
             },
         },
     });
-    // Parse to array
-    if (product) {
-        product.shortInfo = JSON.parse(product.shortInfo);
-    }
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: product });
+    const responseData = {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        priceDiscount: product.priceDiscount,
+        quantity: product.quantity,
+        vendor: product.vendor,
+        shortInfo: JSON.parse(product.shortInfo),
+        description: product.description,
+        slug: product.slug,
+        isDraft: product.isDraft,
+        isPublish: product.isPublish,
+        type: { id: (_a = product.productType) === null || _a === void 0 ? void 0 : _a.id, name: (_b = product.productType) === null || _b === void 0 ? void 0 : _b.type },
+        attributes: product.productAttributes.reduce((result, current) => {
+            return [
+                ...result,
+                { id: current.productAttributeId, name: current.productAttribute.attribute, value: current.value },
+            ];
+        }, []),
+        images: product.images,
+        categories: product.categories,
+    };
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData });
 });
 // [GET] /products/vendors
 const getProductVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -203,8 +218,8 @@ const getProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 
 // [GET] /products/types
 const getProductTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const types = yield prisma_1.default.productType.findMany();
-    // const data = vendors.reduce((result: string[], current) => [...result, current.vendor as string], [])
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: types });
+    const responseData = types.map(type => ({ id: type.id, name: type.type }));
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: responseData });
 });
 // [POST] /products/attributes
 const addProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

@@ -31,8 +31,10 @@ const getProductCategories = (req, res, next) => __awaiter(void 0, void 0, void 
             },
         ],
     });
-    const data = categories.map(category => (category.parentId === null ? Object.assign(Object.assign({}, category), { parentId: 0 }) : category));
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy danh mục thành công', data: data });
+    const responseData = categories.map(category => {
+        return category.parentId === null ? Object.assign(Object.assign({}, category), { parentId: 0 }) : category;
+    });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy danh mục thành công', data: responseData });
 });
 // [POST] /category
 const addCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

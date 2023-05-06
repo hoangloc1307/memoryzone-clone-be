@@ -20,9 +20,11 @@ const getProductCategories = async (req: Request, res: Response, next: NextFunct
     ],
   })
 
-  const data = categories.map(category => (category.parentId === null ? { ...category, parentId: 0 } : category))
+  const responseData = categories.map(category => {
+    return category.parentId === null ? { ...category, parentId: 0 } : category
+  })
 
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy danh mục thành công', data: data })
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy danh mục thành công', data: responseData })
 }
 
 // [POST] /category

@@ -70,8 +70,6 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     total: totalRow,
   }
 
-  console.log(products[4])
-
   const productResponse = products.reduce((result: ProductManageList[], current) => {
     return [
       ...result,
@@ -88,6 +86,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
       },
     ]
   }, [])
+
   const responseData = {
     pagination,
     products: productResponse,
@@ -100,7 +99,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
 const getProductById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params
 
-  const product = await prismaClient.product.findUnique({
+  const product = await prismaClient.product.findUniqueOrThrow({
     where: {
       id: Number(id),
     },
@@ -120,16 +119,15 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
         select: {
           id: true,
           type: true,
-          productAttributes: {
-            select: {
-              id: true,
-              attribute: true,
-            },
-          },
         },
       },
       productAttributes: {
         select: {
+          productAttribute: {
+            select: {
+              attribute: true,
+            },
+          },
           productAttributeId: true,
           value: true,
         },
@@ -148,18 +146,35 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
         select: {
           id: true,
           name: true,
-          order: true,
-          parentId: true,
         },
       },
     },
   })
-  // Parse to array
-  if (product) {
-    product.shortInfo = JSON.parse(product.shortInfo)
+
+  const responseData = {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    priceDiscount: product.priceDiscount,
+    quantity: product.quantity,
+    vendor: product.vendor,
+    shortInfo: JSON.parse(product.shortInfo),
+    description: product.description,
+    slug: product.slug,
+    isDraft: product.isDraft,
+    isPublish: product.isPublish,
+    type: { id: product.productType?.id, name: product.productType?.type },
+    attributes: product.productAttributes.reduce((result: { id: number; name: string; value: string }[], current) => {
+      return [
+        ...result,
+        { id: current.productAttributeId, name: current.productAttribute.attribute, value: current.value },
+      ]
+    }, []),
+    images: product.images,
+    categories: product.categories,
   }
 
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: product })
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData })
 }
 
 // [GET] /products/vendors
@@ -206,8 +221,9 @@ const getProductAttributes = async (req: Request, res: Response, next: NextFunct
 const getProductTypes = async (req: Request, res: Response, next: NextFunction) => {
   const types = await prismaClient.productType.findMany()
 
-  // const data = vendors.reduce((result: string[], current) => [...result, current.vendor as string], [])
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: types })
+  const responseData = types.map(type => ({ id: type.id, name: type.type }))
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: responseData })
 }
 
 // [POST] /products/attributes
