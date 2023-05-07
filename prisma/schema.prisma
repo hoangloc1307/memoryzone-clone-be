@@ -212,11 +212,11 @@ model Category {
 model Image {
   id         Int       @id @default(autoincrement())
   link       String
-  alt        String?
+  alt        String    @default("")
   type       String
   name       String
   deleteHash String    @map("delete_hash")
-  order      Int?      @default(0)
+  order      Int       @default(0)
   productId  Int?      @map("product_id")
   categoryId Int?      @map("category_id")
   userId     String?   @unique @map("user_id")

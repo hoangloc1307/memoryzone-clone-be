@@ -78,23 +78,20 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         page: Number(page),
         total: totalRow,
     };
-    const productResponse = products.reduce((result, current) => {
+    const productResponse = products.map(product => {
         var _a, _b;
-        return [
-            ...result,
-            {
-                id: current.id,
-                name: current.name,
-                image: (_a = current.images[0]) === null || _a === void 0 ? void 0 : _a.link,
-                price: current.price,
-                priceDiscount: current.priceDiscount,
-                type: (_b = current.productType) === null || _b === void 0 ? void 0 : _b.type,
-                quantity: current.quantity,
-                rating: current.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / current.userFeedbacks.length,
-                categories: current.categories.map(item => item.name),
-            },
-        ];
-    }, []);
+        return ({
+            id: product.id,
+            name: product.name,
+            image: (_a = product.images[0]) === null || _a === void 0 ? void 0 : _a.link,
+            price: product.price,
+            priceDiscount: product.priceDiscount,
+            type: (_b = product.productType) === null || _b === void 0 ? void 0 : _b.type,
+            quantity: product.quantity,
+            rating: product.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / product.userFeedbacks.length,
+            categories: product.categories.map(item => item.name),
+        });
+    });
     const responseData = {
         pagination,
         products: productResponse,
@@ -129,11 +126,6 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             },
             productAttributes: {
                 select: {
-                    productAttribute: {
-                        select: {
-                            attribute: true,
-                        },
-                    },
                     productAttributeId: true,
                     value: true,
                 },
@@ -170,10 +162,7 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         isPublish: product.isPublish,
         type: { id: (_a = product.productType) === null || _a === void 0 ? void 0 : _a.id, name: (_b = product.productType) === null || _b === void 0 ? void 0 : _b.type },
         attributes: product.productAttributes.reduce((result, current) => {
-            return [
-                ...result,
-                { id: current.productAttributeId, name: current.productAttribute.attribute, value: current.value },
-            ];
+            return [...result, { id: current.productAttributeId, value: current.value }];
         }, []),
         images: product.images,
         categories: product.categories,
@@ -193,8 +182,8 @@ const getProductVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             vendor: true,
         },
     });
-    const data = vendors.reduce((result, current) => [...result, current.vendor], []);
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy thương hiệu thành công', data: data });
+    const responseData = vendors.map(item => item.vendor);
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy thương hiệu thành công', data: responseData });
 });
 // [GET] /products/attributes
 const getProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -212,8 +201,11 @@ const getProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 
             },
         },
     });
-    const data = attributes === null || attributes === void 0 ? void 0 : attributes.productAttributes;
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: data });
+    const responseData = (attributes === null || attributes === void 0 ? void 0 : attributes.productAttributes.map(attr => ({
+        id: attr.id,
+        name: attr.attribute,
+    }))) || [];
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: responseData });
 });
 // [GET] /products/types
 const getProductTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -225,10 +217,11 @@ const getProductTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 const addProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { attributes } = req.body;
     const { productTypeId } = req.params;
-    const attributeArray = attributes.reduce((result, current) => {
-        return [...result, { create: { attribute: current }, where: { attribute: current } }];
-    }, []);
-    const data = yield prisma_1.default.productType.update({
+    const attributeArray = attributes.map((item) => ({
+        create: { attribute: item },
+        where: { attribute: item },
+    }));
+    yield prisma_1.default.productType.update({
         where: {
             id: Number(productTypeId),
         },
@@ -237,18 +230,15 @@ const addProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 
                 connectOrCreate: attributeArray,
             },
         },
-        include: {
-            productAttributes: true,
-        },
     });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Thêm thuộc tính thành công', data: data });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Thêm thuộc tính thành công' });
 });
 // [POST] /products/drafts
 const addDraftProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const product = yield prisma_1.default.product.create({
+    yield prisma_1.default.product.create({
         data: {},
     });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: product });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công' });
 });
 // [PATCH] /products/update
 const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

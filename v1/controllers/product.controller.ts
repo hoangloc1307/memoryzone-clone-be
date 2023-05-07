@@ -4,7 +4,7 @@ import AppError from '../utils/error'
 import { imgurDelete, imgurUpload } from '../utils/imgur'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
-import { ProductManageList } from '../types/product.type'
+import { GetProductByIdResponse, GetProductsResponse, Pagination, Product } from '../types/product.type'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -64,30 +64,25 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     }),
   ])
 
-  const pagination = {
+  const pagination: Pagination = {
     limit: Number(limit),
     page: Number(page),
     total: totalRow,
   }
 
-  const productResponse = products.reduce((result: ProductManageList[], current) => {
-    return [
-      ...result,
-      {
-        id: current.id,
-        name: current.name,
-        image: current.images[0]?.link,
-        price: current.price,
-        priceDiscount: current.priceDiscount,
-        type: current.productType?.type,
-        quantity: current.quantity,
-        rating: current.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / current.userFeedbacks.length,
-        categories: current.categories.map(item => item.name),
-      },
-    ]
-  }, [])
+  const productResponse: Product[] = products.map(product => ({
+    id: product.id,
+    name: product.name,
+    image: product.images[0]?.link,
+    price: product.price,
+    priceDiscount: product.priceDiscount,
+    type: product.productType?.type,
+    quantity: product.quantity,
+    rating: product.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / product.userFeedbacks.length,
+    categories: product.categories.map(item => item.name),
+  }))
 
-  const responseData = {
+  const responseData: GetProductsResponse = {
     pagination,
     products: productResponse,
   }
@@ -123,11 +118,6 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
       },
       productAttributes: {
         select: {
-          productAttribute: {
-            select: {
-              attribute: true,
-            },
-          },
           productAttributeId: true,
           value: true,
         },
@@ -151,7 +141,7 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
     },
   })
 
-  const responseData = {
+  const responseData: GetProductByIdResponse = {
     id: product.id,
     name: product.name,
     price: product.price,
@@ -164,11 +154,8 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
     isDraft: product.isDraft,
     isPublish: product.isPublish,
     type: { id: product.productType?.id, name: product.productType?.type },
-    attributes: product.productAttributes.reduce((result: { id: number; name: string; value: string }[], current) => {
-      return [
-        ...result,
-        { id: current.productAttributeId, name: current.productAttribute.attribute, value: current.value },
-      ]
+    attributes: product.productAttributes.reduce((result: { id: number; value: string }[], current) => {
+      return [...result, { id: current.productAttributeId, value: current.value }]
     }, []),
     images: product.images,
     categories: product.categories,
@@ -190,8 +177,10 @@ const getProductVendors = async (req: Request, res: Response, next: NextFunction
       vendor: true,
     },
   })
-  const data = vendors.reduce((result: string[], current) => [...result, current.vendor as string], [])
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy thương hiệu thành công', data: data })
+
+  const responseData: string[] = vendors.map(item => item.vendor)
+
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy thương hiệu thành công', data: responseData })
 }
 
 // [GET] /products/attributes
@@ -212,16 +201,20 @@ const getProductAttributes = async (req: Request, res: Response, next: NextFunct
     },
   })
 
-  const data = attributes?.productAttributes
+  const responseData: { id: number; name: string }[] =
+    attributes?.productAttributes.map(attr => ({
+      id: attr.id,
+      name: attr.attribute,
+    })) || []
 
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: data })
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: responseData })
 }
 
 // [GET] /products/types
 const getProductTypes = async (req: Request, res: Response, next: NextFunction) => {
   const types = await prismaClient.productType.findMany()
 
-  const responseData = types.map(type => ({ id: type.id, name: type.type }))
+  const responseData: { id: number; name: string }[] = types.map(type => ({ id: type.id, name: type.type }))
 
   responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: responseData })
 }
@@ -231,14 +224,12 @@ const addProductAttributes = async (req: Request, res: Response, next: NextFunct
   const { attributes } = req.body
   const { productTypeId } = req.params
 
-  const attributeArray = attributes.reduce(
-    (result: { create: { attribute: string }; where: { attribute: string } }[], current: string) => {
-      return [...result, { create: { attribute: current }, where: { attribute: current } }]
-    },
-    []
-  )
+  const attributeArray = attributes.map((item: string) => ({
+    create: { attribute: item },
+    where: { attribute: item },
+  }))
 
-  const data = await prismaClient.productType.update({
+  await prismaClient.productType.update({
     where: {
       id: Number(productTypeId),
     },
@@ -247,20 +238,18 @@ const addProductAttributes = async (req: Request, res: Response, next: NextFunct
         connectOrCreate: attributeArray,
       },
     },
-    include: {
-      productAttributes: true,
-    },
   })
 
-  responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công', data: data })
+  responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công' })
 }
 
 // [POST] /products/drafts
 const addDraftProduct = async (req: Request, res: Response, next: NextFunction) => {
-  const product = await prismaClient.product.create({
+  await prismaClient.product.create({
     data: {},
   })
-  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: product })
+
+  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công' })
 }
 
 // [PATCH] /products/update
