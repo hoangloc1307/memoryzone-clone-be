@@ -187,7 +187,7 @@ const getProductVendors = async (req: Request, res: Response, next: NextFunction
 const getProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
   const { productTypeId } = req.params
 
-  const attributes = await prismaClient.productType.findUnique({
+  const attributes = await prismaClient.productType.findUniqueOrThrow({
     where: {
       id: Number(productTypeId),
     },
@@ -202,7 +202,7 @@ const getProductAttributes = async (req: Request, res: Response, next: NextFunct
   })
 
   const responseData: { id: number; name: string }[] =
-    attributes?.productAttributes.map(attr => ({
+    attributes.productAttributes.map(attr => ({
       id: attr.id,
       name: attr.attribute,
     })) || []
@@ -219,7 +219,7 @@ const getProductTypes = async (req: Request, res: Response, next: NextFunction) 
   responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: responseData })
 }
 
-// [POST] /products/attributes
+// [POST] /products/attributes/:productTypeId
 const addProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
   const { attributes } = req.body
   const { productTypeId } = req.params
@@ -252,149 +252,116 @@ const addDraftProduct = async (req: Request, res: Response, next: NextFunction) 
   responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công' })
 }
 
-// [PATCH] /products/update
+// [PATCH] /products/:id
 const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
   const id = Number(req.params.id)
   const files = req.files as Express.Multer.File[]
   const {
     name,
     price,
+    priceDiscount,
     quantity,
     vendor,
-    priceDiscount,
-    description,
     shortInfo,
-    typeId,
-    isDraft,
-    isPublish,
     slug,
-    attributes,
     categories,
+    description,
+    typeId,
+    attributes,
+  }: {
+    name?: string
+    price?: number
+    priceDiscount?: number
+    quantity?: number
+    vendor?: string
+    shortInfo?: string[]
+    slug?: string
+    categories?: { add: number[]; delete: number[] }
+    description?: string
+    typeId?: number
+    attributes?: { id: number; value: string }[]
   } = req.body
 
-  let imagesCreateMany = []
+  // let imagesCreateMany = []
 
-  if (files && files.length > 0) {
-    const values = await imgurUpload(files)
+  // if (files && files.length > 0) {
+  //   const values = await imgurUpload(files)
 
-    imagesCreateMany = values.reduce((result: any, current: any) => {
-      const data = current.data
+  //   imagesCreateMany = values.reduce((result: any, current: any) => {
+  //     const data = current.data
 
-      return name
-        ? [
-            ...result,
-            {
-              deleteHash: data.deletehash,
-              link: data.link,
-              name: data.name,
-              type: 'PRODUCT_IMAGE',
-              alt: name,
-            },
-          ]
-        : [
-            ...result,
-            {
-              deleteHash: data.deletehash,
-              link: data.link,
-              name: data.name,
-              type: 'PRODUCT_IMAGE',
-              alt: 'Product image',
-            },
-          ]
-    }, [])
-  }
-
-  const upsertArray = attributes
-    ? attributes.reduce((result: any[], current: any) => {
-        if (current.value) {
-          return [
-            ...result,
-            {
-              where: {
-                productId_productAttributeId: {
-                  productAttributeId: Number(current.productAttributeId),
-                  productId: id,
-                },
-              },
-              create: {
-                value: current.value,
-                productAttributeId: Number(current.productAttributeId),
-              },
-              update: {
-                value: current.value,
-              },
-            },
-          ]
-        }
-        return [...result]
-      }, [])
-    : undefined
+  //     return name
+  //       ? [
+  //           ...result,
+  //           {
+  //             deleteHash: data.deletehash,
+  //             link: data.link,
+  //             name: data.name,
+  //             type: 'PRODUCT_IMAGE',
+  //             alt: name,
+  //           },
+  //         ]
+  //       : [
+  //           ...result,
+  //           {
+  //             deleteHash: data.deletehash,
+  //             link: data.link,
+  //             name: data.name,
+  //             type: 'PRODUCT_IMAGE',
+  //             alt: 'Product image',
+  //           },
+  //         ]
+  //   }, [])
+  // }
 
   const connectCategories =
-    categories?.add && categories.add.length > 0
-      ? categories.add.map((item: string) => ({ id: Number(item) }))
-      : undefined
+    categories?.add && categories.add.length > 0 ? categories.add.map((id: number) => ({ id })) : undefined
   const disconnectCategories =
-    categories?.delete && categories.delete.length > 0
-      ? categories.delete.map((item: string) => ({ id: Number(item) }))
-      : undefined
+    categories?.delete && categories.delete.length > 0 ? categories.delete.map((id: number) => ({ id })) : undefined
 
-  const product = await prismaClient.product.update({
+  const upsertArray = attributes?.map(current => ({
+    where: {
+      productId_productAttributeId: {
+        productAttributeId: current.id,
+        productId: id,
+      },
+    },
+    create: {
+      value: current.value,
+      productAttributeId: current.id,
+    },
+    update: {
+      value: current.value,
+    },
+  }))
+
+  await prismaClient.product.update({
     where: {
       id: id,
     },
     data: {
       name: name ?? undefined,
-      price: price ? Number(price) : undefined,
-      priceDiscount: priceDiscount ? Number(priceDiscount) : undefined,
-      quantity: quantity ? Number(quantity) : undefined,
-      shortInfo: shortInfo && shortInfo.length >= 0 ? JSON.stringify(shortInfo) : undefined,
+      price: price ?? undefined,
+      priceDiscount: priceDiscount ?? undefined,
+      quantity: quantity ?? undefined,
       vendor: vendor ?? undefined,
-      description: description ?? undefined,
-      updatedAt: new Date().toISOString(),
-      isDraft: isDraft ?? undefined,
-      isPublish: isPublish ?? undefined,
+      shortInfo: shortInfo && shortInfo.length >= 0 ? JSON.stringify(shortInfo) : undefined,
       slug: slug ?? undefined,
-      productType: typeId ? { connect: { id: Number(typeId) } } : undefined,
-      productAttributes: attributes ? { upsert: upsertArray } : undefined,
-      images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
       categories: {
         connect: connectCategories,
         disconnect: disconnectCategories,
       },
-    },
-    select: {
-      id: true,
-      name: true,
-      price: true,
-      priceDiscount: true,
-      quantity: true,
-      vendor: true,
-      shortInfo: true,
-      description: true,
-      slug: true,
-      isDraft: true,
-      isPublish: true,
-      productType: {
-        select: {
-          id: true,
-          type: true,
-          productAttributes: { select: { id: true, attribute: true } },
-        },
-      },
-      productAttributes: {
-        select: { productAttributeId: true, value: true },
-      },
-      images: {
-        select: { id: true, alt: true, deleteHash: true, name: true, link: true, order: true },
-      },
-      categories: {
-        select: { id: true, name: true, order: true, parentId: true },
-      },
+      description: description ?? undefined,
+      productType: typeId ? { connect: { id: typeId } } : undefined,
+      productAttributes: attributes ? { upsert: upsertArray } : undefined,
+      // isDraft: isDraft ?? undefined,
+      // isPublish: isPublish ?? undefined,
+      // images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+      updatedAt: new Date().toISOString(),
     },
   })
 
-  responseSuccess(res, STATUS.Ok, { message: 'Cập nhật sản phẩm thành công', data: product })
+  responseSuccess(res, STATUS.Ok, { message: 'Cập nhật sản phẩm thành công' })
 }
 
 // [PATCH] /products/images

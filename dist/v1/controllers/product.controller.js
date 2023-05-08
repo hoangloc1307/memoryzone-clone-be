@@ -188,7 +188,7 @@ const getProductVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, 
 // [GET] /products/attributes
 const getProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { productTypeId } = req.params;
-    const attributes = yield prisma_1.default.productType.findUnique({
+    const attributes = yield prisma_1.default.productType.findUniqueOrThrow({
         where: {
             id: Number(productTypeId),
         },
@@ -201,10 +201,10 @@ const getProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 
             },
         },
     });
-    const responseData = (attributes === null || attributes === void 0 ? void 0 : attributes.productAttributes.map(attr => ({
+    const responseData = attributes.productAttributes.map(attr => ({
         id: attr.id,
         name: attr.attribute,
-    }))) || [];
+    })) || [];
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: responseData });
 });
 // [GET] /products/types
@@ -213,7 +213,7 @@ const getProductTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     const responseData = types.map(type => ({ id: type.id, name: type.type }));
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: responseData });
 });
-// [POST] /products/attributes
+// [POST] /products/attributes/:productTypeId
 const addProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { attributes } = req.body;
     const { productTypeId } = req.params;
@@ -240,125 +240,82 @@ const addDraftProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     });
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công' });
 });
-// [PATCH] /products/update
+// [PATCH] /products/:id
 const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
     const files = req.files;
-    const { name, price, quantity, vendor, priceDiscount, description, shortInfo, typeId, isDraft, isPublish, slug, attributes, categories, } = req.body;
-    let imagesCreateMany = [];
-    if (files && files.length > 0) {
-        const values = yield (0, imgur_1.imgurUpload)(files);
-        imagesCreateMany = values.reduce((result, current) => {
-            const data = current.data;
-            return name
-                ? [
-                    ...result,
-                    {
-                        deleteHash: data.deletehash,
-                        link: data.link,
-                        name: data.name,
-                        type: 'PRODUCT_IMAGE',
-                        alt: name,
-                    },
-                ]
-                : [
-                    ...result,
-                    {
-                        deleteHash: data.deletehash,
-                        link: data.link,
-                        name: data.name,
-                        type: 'PRODUCT_IMAGE',
-                        alt: 'Product image',
-                    },
-                ];
-        }, []);
-    }
-    const upsertArray = attributes
-        ? attributes.reduce((result, current) => {
-            if (current.value) {
-                return [
-                    ...result,
-                    {
-                        where: {
-                            productId_productAttributeId: {
-                                productAttributeId: Number(current.productAttributeId),
-                                productId: id,
-                            },
-                        },
-                        create: {
-                            value: current.value,
-                            productAttributeId: Number(current.productAttributeId),
-                        },
-                        update: {
-                            value: current.value,
-                        },
-                    },
-                ];
-            }
-            return [...result];
-        }, [])
-        : undefined;
-    const connectCategories = (categories === null || categories === void 0 ? void 0 : categories.add) && categories.add.length > 0
-        ? categories.add.map((item) => ({ id: Number(item) }))
-        : undefined;
-    const disconnectCategories = (categories === null || categories === void 0 ? void 0 : categories.delete) && categories.delete.length > 0
-        ? categories.delete.map((item) => ({ id: Number(item) }))
-        : undefined;
-    const product = yield prisma_1.default.product.update({
+    const { name, price, priceDiscount, quantity, vendor, shortInfo, slug, categories, description, typeId, attributes, } = req.body;
+    // let imagesCreateMany = []
+    // if (files && files.length > 0) {
+    //   const values = await imgurUpload(files)
+    //   imagesCreateMany = values.reduce((result: any, current: any) => {
+    //     const data = current.data
+    //     return name
+    //       ? [
+    //           ...result,
+    //           {
+    //             deleteHash: data.deletehash,
+    //             link: data.link,
+    //             name: data.name,
+    //             type: 'PRODUCT_IMAGE',
+    //             alt: name,
+    //           },
+    //         ]
+    //       : [
+    //           ...result,
+    //           {
+    //             deleteHash: data.deletehash,
+    //             link: data.link,
+    //             name: data.name,
+    //             type: 'PRODUCT_IMAGE',
+    //             alt: 'Product image',
+    //           },
+    //         ]
+    //   }, [])
+    // }
+    const connectCategories = (categories === null || categories === void 0 ? void 0 : categories.add) && categories.add.length > 0 ? categories.add.map((id) => ({ id })) : undefined;
+    const disconnectCategories = (categories === null || categories === void 0 ? void 0 : categories.delete) && categories.delete.length > 0 ? categories.delete.map((id) => ({ id })) : undefined;
+    const upsertArray = attributes === null || attributes === void 0 ? void 0 : attributes.map(current => ({
+        where: {
+            productId_productAttributeId: {
+                productAttributeId: current.id,
+                productId: id,
+            },
+        },
+        create: {
+            value: current.value,
+            productAttributeId: current.id,
+        },
+        update: {
+            value: current.value,
+        },
+    }));
+    yield prisma_1.default.product.update({
         where: {
             id: id,
         },
         data: {
             name: name !== null && name !== void 0 ? name : undefined,
-            price: price ? Number(price) : undefined,
-            priceDiscount: priceDiscount ? Number(priceDiscount) : undefined,
-            quantity: quantity ? Number(quantity) : undefined,
-            shortInfo: shortInfo && shortInfo.length >= 0 ? JSON.stringify(shortInfo) : undefined,
+            price: price !== null && price !== void 0 ? price : undefined,
+            priceDiscount: priceDiscount !== null && priceDiscount !== void 0 ? priceDiscount : undefined,
+            quantity: quantity !== null && quantity !== void 0 ? quantity : undefined,
             vendor: vendor !== null && vendor !== void 0 ? vendor : undefined,
-            description: description !== null && description !== void 0 ? description : undefined,
-            updatedAt: new Date().toISOString(),
-            isDraft: isDraft !== null && isDraft !== void 0 ? isDraft : undefined,
-            isPublish: isPublish !== null && isPublish !== void 0 ? isPublish : undefined,
+            shortInfo: shortInfo && shortInfo.length >= 0 ? JSON.stringify(shortInfo) : undefined,
             slug: slug !== null && slug !== void 0 ? slug : undefined,
-            productType: typeId ? { connect: { id: Number(typeId) } } : undefined,
-            productAttributes: attributes ? { upsert: upsertArray } : undefined,
-            images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
             categories: {
                 connect: connectCategories,
                 disconnect: disconnectCategories,
             },
-        },
-        select: {
-            id: true,
-            name: true,
-            price: true,
-            priceDiscount: true,
-            quantity: true,
-            vendor: true,
-            shortInfo: true,
-            description: true,
-            slug: true,
-            isDraft: true,
-            isPublish: true,
-            productType: {
-                select: {
-                    id: true,
-                    type: true,
-                    productAttributes: { select: { id: true, attribute: true } },
-                },
-            },
-            productAttributes: {
-                select: { productAttributeId: true, value: true },
-            },
-            images: {
-                select: { id: true, alt: true, deleteHash: true, name: true, link: true, order: true },
-            },
-            categories: {
-                select: { id: true, name: true, order: true, parentId: true },
-            },
+            description: description !== null && description !== void 0 ? description : undefined,
+            productType: typeId ? { connect: { id: typeId } } : undefined,
+            productAttributes: attributes ? { upsert: upsertArray } : undefined,
+            // isDraft: isDraft ?? undefined,
+            // isPublish: isPublish ?? undefined,
+            // images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+            updatedAt: new Date().toISOString(),
         },
     });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật sản phẩm thành công', data: product });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật sản phẩm thành công' });
 });
 // [PATCH] /products/images
 const deleteProductImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
