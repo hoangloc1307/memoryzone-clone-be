@@ -86,15 +86,8 @@ const addProductAttributes = [
 ]
 
 const deleteProductImage = [
-  body('imageId')
-    .notEmpty()
-    .withMessage('Không được để trống')
-    .not()
-    .isString()
-    .withMessage('Phải là số')
-    .isNumeric({ no_symbols: true })
-    .withMessage('Không hợp lệ'),
-  body('deleteHash').notEmpty().withMessage('Không được để trống'),
+  body('ids').isArray({ min: 1 }).withMessage('Phải là mảng và có ít nhất 1 giá trị'),
+  body('deleteHashs').isArray({ min: 1 }).withMessage('Phải là mảng và có ít nhất 1 giá trị'),
 ]
 
 const productValidate = {

@@ -24,8 +24,14 @@ export const imgurUpload = (images: Express.Multer.File[]) => {
   return Promise.all(promiseArr)
 }
 
-export const imgurDelete = (deleteHash: string) => {
-  return imgurClient.deleteImage(deleteHash)
+export const imgurDelete = (deleteHashs: string[]) => {
+  const promiseArr: Promise<ImgurApiResponse<boolean>>[] = []
+
+  deleteHashs.forEach(imageHash => {
+    promiseArr.push(imgurClient.deleteImage(imageHash))
+  })
+
+  return Promise.all(promiseArr)
 }
 
 export const imgurGetAlbums = () => {

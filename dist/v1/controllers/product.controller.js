@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const httpStatus_1 = require("../constants/httpStatus");
-const error_1 = __importDefault(require("../utils/error"));
 const imgur_1 = require("../utils/imgur");
 const prisma_1 = __importDefault(require("../utils/prisma"));
 const response_1 = require("../utils/response");
@@ -244,37 +243,12 @@ const addDraftProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
 const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
     const files = req.files;
-    const { name, price, priceDiscount, quantity, vendor, shortInfo, slug, categories, description, typeId, attributes, } = req.body;
-    // let imagesCreateMany = []
-    // if (files && files.length > 0) {
-    //   const values = await imgurUpload(files)
-    //   imagesCreateMany = values.reduce((result: any, current: any) => {
-    //     const data = current.data
-    //     return name
-    //       ? [
-    //           ...result,
-    //           {
-    //             deleteHash: data.deletehash,
-    //             link: data.link,
-    //             name: data.name,
-    //             type: 'PRODUCT_IMAGE',
-    //             alt: name,
-    //           },
-    //         ]
-    //       : [
-    //           ...result,
-    //           {
-    //             deleteHash: data.deletehash,
-    //             link: data.link,
-    //             name: data.name,
-    //             type: 'PRODUCT_IMAGE',
-    //             alt: 'Product image',
-    //           },
-    //         ]
-    //   }, [])
-    // }
+    const { name, price, priceDiscount, quantity, vendor, shortInfo, slug, categories, description, typeId, attributes, altImages, } = req.body;
+    let imagesCreateMany = [];
+    // Prepare categories
     const connectCategories = (categories === null || categories === void 0 ? void 0 : categories.add) && categories.add.length > 0 ? categories.add.map((id) => ({ id })) : undefined;
     const disconnectCategories = (categories === null || categories === void 0 ? void 0 : categories.delete) && categories.delete.length > 0 ? categories.delete.map((id) => ({ id })) : undefined;
+    // Prepare attributes
     const upsertArray = attributes === null || attributes === void 0 ? void 0 : attributes.map(current => ({
         where: {
             productId_productAttributeId: {
@@ -290,6 +264,17 @@ const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             value: current.value,
         },
     }));
+    // Prepare images
+    if (files && files.length > 0) {
+        const values = yield (0, imgur_1.imgurUpload)(files);
+        imagesCreateMany = values.map((current, index) => ({
+            deleteHash: current.data.deletehash,
+            link: current.data.link,
+            name: current.data.name,
+            type: 'PRODUCT_IMAGE',
+            alt: (altImages === null || altImages === void 0 ? void 0 : altImages[index]) || 'Product image',
+        }));
+    }
     yield prisma_1.default.product.update({
         where: {
             id: id,
@@ -311,7 +296,7 @@ const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             productAttributes: attributes ? { upsert: upsertArray } : undefined,
             // isDraft: isDraft ?? undefined,
             // isPublish: isPublish ?? undefined,
-            // images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+            images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
             updatedAt: new Date().toISOString(),
         },
     });
@@ -319,25 +304,18 @@ const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 });
 // [PATCH] /products/images
 const deleteProductImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { imageId, deleteHash } = req.body;
-    const imgRes = yield (0, imgur_1.imgurDelete)(deleteHash);
-    if (imgRes.success) {
-        const image = yield prisma_1.default.image.delete({
-            where: { id: imageId },
-            select: {
-                id: true,
-                alt: true,
-                deleteHash: true,
-                name: true,
-                link: true,
-                order: true,
+    const { ids, deleteHashs } = req.body;
+    yield Promise.all([
+        (0, imgur_1.imgurDelete)(deleteHashs),
+        prisma_1.default.image.deleteMany({
+            where: {
+                id: {
+                    in: ids,
+                },
             },
-        });
-        (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Xoá hình ảnh thành công', data: image });
-    }
-    else {
-        next(new error_1.default(httpStatus_1.STATUS.InternalServerError, 'Xoá hình ảnh thất bại', 'IMGUR_DELETE_FAIL'));
-    }
+        }),
+    ]);
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Xoá hình ảnh thành công' });
 });
 const productController = {
     getProducts,

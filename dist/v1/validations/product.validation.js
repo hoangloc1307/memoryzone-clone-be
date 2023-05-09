@@ -84,15 +84,8 @@ const addProductAttributes = [
     (0, express_validator_1.body)('attributes').isArray({ min: 1 }).withMessage('Phải là mảng và có ít nhất 1 giá trị'),
 ];
 const deleteProductImage = [
-    (0, express_validator_1.body)('imageId')
-        .notEmpty()
-        .withMessage('Không được để trống')
-        .not()
-        .isString()
-        .withMessage('Phải là số')
-        .isNumeric({ no_symbols: true })
-        .withMessage('Không hợp lệ'),
-    (0, express_validator_1.body)('deleteHash').notEmpty().withMessage('Không được để trống'),
+    (0, express_validator_1.body)('ids').isArray({ min: 1 }).withMessage('Phải là mảng và có ít nhất 1 giá trị'),
+    (0, express_validator_1.body)('deleteHashs').isArray({ min: 1 }).withMessage('Phải là mảng và có ít nhất 1 giá trị'),
 ];
 const productValidate = {
     getProducts,

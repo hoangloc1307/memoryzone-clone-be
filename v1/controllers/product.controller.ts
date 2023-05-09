@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { STATUS } from '../constants/httpStatus'
-import AppError from '../utils/error'
+import { GetProductByIdResponse, GetProductsResponse, Pagination, Product } from '../types/product.type'
 import { imgurDelete, imgurUpload } from '../utils/imgur'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
-import { GetProductByIdResponse, GetProductsResponse, Pagination, Product } from '../types/product.type'
 
 // [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
@@ -254,7 +253,7 @@ const addDraftProduct = async (req: Request, res: Response, next: NextFunction) 
 
 // [PATCH] /products/:id
 const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
-  const id = Number(req.params.id)
+  const id: number = Number(req.params.id)
   const files = req.files as Express.Multer.File[]
   const {
     name,
@@ -268,6 +267,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     description,
     typeId,
     attributes,
+    altImages,
   }: {
     name?: string
     price?: number
@@ -280,45 +280,23 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     description?: string
     typeId?: number
     attributes?: { id: number; value: string }[]
+    altImages?: string[]
   } = req.body
+  let imagesCreateMany: {
+    deleteHash: string
+    link: string
+    name: string
+    type: string
+    alt?: string
+  }[] = []
 
-  // let imagesCreateMany = []
-
-  // if (files && files.length > 0) {
-  //   const values = await imgurUpload(files)
-
-  //   imagesCreateMany = values.reduce((result: any, current: any) => {
-  //     const data = current.data
-
-  //     return name
-  //       ? [
-  //           ...result,
-  //           {
-  //             deleteHash: data.deletehash,
-  //             link: data.link,
-  //             name: data.name,
-  //             type: 'PRODUCT_IMAGE',
-  //             alt: name,
-  //           },
-  //         ]
-  //       : [
-  //           ...result,
-  //           {
-  //             deleteHash: data.deletehash,
-  //             link: data.link,
-  //             name: data.name,
-  //             type: 'PRODUCT_IMAGE',
-  //             alt: 'Product image',
-  //           },
-  //         ]
-  //   }, [])
-  // }
-
+  // Prepare categories
   const connectCategories =
     categories?.add && categories.add.length > 0 ? categories.add.map((id: number) => ({ id })) : undefined
   const disconnectCategories =
     categories?.delete && categories.delete.length > 0 ? categories.delete.map((id: number) => ({ id })) : undefined
 
+  // Prepare attributes
   const upsertArray = attributes?.map(current => ({
     where: {
       productId_productAttributeId: {
@@ -334,6 +312,19 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       value: current.value,
     },
   }))
+
+  // Prepare images
+  if (files && files.length > 0) {
+    const values = await imgurUpload(files)
+
+    imagesCreateMany = values.map((current: any, index) => ({
+      deleteHash: current.data.deletehash,
+      link: current.data.link,
+      name: current.data.name,
+      type: 'PRODUCT_IMAGE',
+      alt: altImages?.[index] || 'Product image',
+    }))
+  }
 
   await prismaClient.product.update({
     where: {
@@ -356,7 +347,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       productAttributes: attributes ? { upsert: upsertArray } : undefined,
       // isDraft: isDraft ?? undefined,
       // isPublish: isPublish ?? undefined,
-      // images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+      images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
       updatedAt: new Date().toISOString(),
     },
   })
@@ -366,25 +357,20 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
 
 // [PATCH] /products/images
 const deleteProductImage = async (req: Request, res: Response, next: NextFunction) => {
-  const { imageId, deleteHash } = req.body
-  const imgRes = await imgurDelete(deleteHash)
+  const { ids, deleteHashs } = req.body
 
-  if (imgRes.success) {
-    const image = await prismaClient.image.delete({
-      where: { id: imageId },
-      select: {
-        id: true,
-        alt: true,
-        deleteHash: true,
-        name: true,
-        link: true,
-        order: true,
+  await Promise.all([
+    imgurDelete(deleteHashs),
+    prismaClient.image.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
       },
-    })
-    responseSuccess(res, STATUS.Ok, { message: 'Xoá hình ảnh thành công', data: image })
-  } else {
-    next(new AppError(STATUS.InternalServerError, 'Xoá hình ảnh thất bại', 'IMGUR_DELETE_FAIL'))
-  }
+    }),
+  ])
+
+  responseSuccess(res, STATUS.Ok, { message: 'Xoá hình ảnh thành công' })
 }
 
 const productController = {

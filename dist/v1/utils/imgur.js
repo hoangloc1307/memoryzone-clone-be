@@ -21,8 +21,12 @@ const imgurUpload = (images) => {
     return Promise.all(promiseArr);
 };
 exports.imgurUpload = imgurUpload;
-const imgurDelete = (deleteHash) => {
-    return imgurClient.deleteImage(deleteHash);
+const imgurDelete = (deleteHashs) => {
+    const promiseArr = [];
+    deleteHashs.forEach(imageHash => {
+        promiseArr.push(imgurClient.deleteImage(imageHash));
+    });
+    return Promise.all(promiseArr);
 };
 exports.imgurDelete = imgurDelete;
 const imgurGetAlbums = () => {
