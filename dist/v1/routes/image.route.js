@@ -10,5 +10,6 @@ const image_controller_1 = __importDefault(require("../controllers/image.control
 const imageRouter = (0, express_1.Router)();
 imageRouter.get('/', auth_middleware_1.default.verifyAdmin, (0, response_1.catchError)(image_controller_1.default.getAlbums));
 imageRouter.get('/:albumId', auth_middleware_1.default.verifyAdmin, (0, response_1.catchError)(image_controller_1.default.getImages));
+imageRouter.patch('/:id', auth_middleware_1.default.verifyAdmin, (0, response_1.catchError)(image_controller_1.default.updateImage));
 exports.default = imageRouter;
 //# sourceMappingURL=image.route.js.map
