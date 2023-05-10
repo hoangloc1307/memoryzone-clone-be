@@ -8,6 +8,7 @@ export interface Product {
   quantity: number
   rating: number | null
   categories: string[]
+  updatedAt: Date | null
 }
 
 export interface Pagination {

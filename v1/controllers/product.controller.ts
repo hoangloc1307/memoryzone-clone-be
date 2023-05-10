@@ -49,6 +49,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
             name: true,
           },
         },
+        updatedAt: true,
       },
       where: {
         name: {
@@ -79,6 +80,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     quantity: product.quantity,
     rating: product.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / product.userFeedbacks.length,
     categories: product.categories.map(item => item.name),
+    updatedAt: product.updatedAt,
   }))
 
   const responseData: GetProductsResponse = {

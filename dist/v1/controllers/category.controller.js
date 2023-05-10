@@ -12,10 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const httpStatus_1 = require("../constants/httpStatus");
 const prisma_1 = __importDefault(require("../utils/prisma"));
 const response_1 = require("../utils/response");
-const httpStatus_1 = require("../constants/httpStatus");
-const error_1 = __importDefault(require("../utils/error"));
 // [GET] /category
 const getProductCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const categories = yield prisma_1.default.category.findMany({
@@ -39,55 +38,49 @@ const getProductCategories = (req, res, next) => __awaiter(void 0, void 0, void 
 // [POST] /category
 const addCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, parentId, order } = req.body;
-    const category = yield prisma_1.default.category.create({
+    yield prisma_1.default.category.create({
         data: {
             name: name,
-            parentId: parentId ? Number(parentId) : undefined,
-            order: order ? Number(order) : undefined,
+            parentId: Number(parentId) || 0,
+            order: Number(order) || 0,
         },
     });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Thêm danh mục thành công', data: category });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Thêm danh mục thành công' });
 });
 // [PATCH] /category
 const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, parentId, order } = req.body;
     const id = Number(req.params.id);
-    if (name || (parentId !== null && parentId !== undefined) || (order !== null && order !== undefined)) {
-        const category = yield prisma_1.default.category.update({
-            where: {
-                id: id,
-            },
-            data: {
-                name: name !== null && name !== void 0 ? name : undefined,
-                parentId: parentId !== null && parentId !== void 0 ? parentId : undefined,
-                order: order !== null && order !== void 0 ? order : undefined,
-            },
-        });
-        (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật danh mục thành công', data: category });
-    }
-    else {
-        next(new error_1.default(httpStatus_1.STATUS.BadRequest, 'Không có dữ liệu để cập nhật', 'NO_DATA_TO_UPDATE'));
-    }
+    const category = yield prisma_1.default.category.update({
+        where: {
+            id: id,
+        },
+        data: {
+            name: name !== null && name !== void 0 ? name : undefined,
+            parentId: parentId !== null && parentId !== void 0 ? parentId : undefined,
+            order: order !== null && order !== void 0 ? order : undefined,
+        },
+    });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật danh mục thành công', data: category });
 });
 // [DELETE] /category/:id
 const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
-    const categoryChildren = yield prisma_1.default.category.findMany({
-        where: {
-            parentId: id,
-        },
-    });
-    if (categoryChildren.length === 0) {
-        const category = yield prisma_1.default.category.delete({
+    const deleteCategory = (id) => __awaiter(void 0, void 0, void 0, function* () {
+        const categoryChildren = yield prisma_1.default.category.findMany({
+            where: {
+                parentId: id,
+            },
+        });
+        yield Promise.all(categoryChildren.map(child => deleteCategory(child.id)));
+        yield prisma_1.default.category.delete({
             where: {
                 id: id,
             },
         });
-        (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Xoá danh mục thành công', data: category });
-    }
-    else {
-        next(new error_1.default(httpStatus_1.STATUS.BadRequest, 'Phải xoá các danh mục con trước', 'SUB_CATEGORIES_EXISTS'));
-    }
+    });
+    yield deleteCategory(id);
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Xoá danh mục thành công' });
 });
 const categoryController = {
     getProductCategories,

@@ -198,7 +198,7 @@ model Category {
   id         Int        @id @default(autoincrement())
   name       String
   order      Int        @default(0)
-  parentId   Int?       @map("parent_category_id")
+  parentId   Int?       @default(0) @map("parent_category_id")
   products   Product[]
   banners    Banner[]
   categories Category[] @relation("SubCategories")

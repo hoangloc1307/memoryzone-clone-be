@@ -59,6 +59,7 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                         name: true,
                     },
                 },
+                updatedAt: true,
             },
             where: {
                 name: {
@@ -89,6 +90,7 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             quantity: product.quantity,
             rating: product.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / product.userFeedbacks.length,
             categories: product.categories.map(item => item.name),
+            updatedAt: product.updatedAt,
         });
     });
     const responseData = {
