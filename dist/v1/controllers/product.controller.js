@@ -25,6 +25,7 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 name: {
                     contains: name ? String(name) : undefined,
                 },
+                status: true,
             },
         }),
         prisma_1.default.product.findMany({
@@ -59,12 +60,14 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                         name: true,
                     },
                 },
+                status: true,
                 updatedAt: true,
             },
             where: {
                 name: {
                     contains: name ? String(name) : undefined,
                 },
+                status: true,
             },
             orderBy: {
                 id: 'desc',
@@ -90,6 +93,7 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             quantity: product.quantity,
             rating: product.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / product.userFeedbacks.length,
             categories: product.categories.map(item => item.name),
+            status: product.status,
             updatedAt: product.updatedAt,
         });
     });
@@ -236,16 +240,19 @@ const addProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 
 });
 // [POST] /products/drafts
 const addDraftProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    yield prisma_1.default.product.create({
+    const draft = yield prisma_1.default.product.create({
         data: {},
+        select: {
+            id: true,
+        },
     });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công' });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: draft });
 });
 // [PATCH] /products/:id
 const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
     const files = req.files;
-    const { name, price, priceDiscount, quantity, vendor, shortInfo, slug, categories, description, typeId, attributes, altImages, } = req.body;
+    const { name, price, priceDiscount, quantity, vendor, shortInfo, slug, categories, description, typeId, attributes, altImages, status, } = req.body;
     let imagesCreateMany = [];
     // Prepare categories
     const connectCategories = (categories === null || categories === void 0 ? void 0 : categories.add) && categories.add.length > 0 ? categories.add.map((id) => ({ id })) : undefined;
@@ -277,6 +284,7 @@ const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             alt: (altImages === null || altImages === void 0 ? void 0 : altImages[index]) || 'Product image',
         }));
     }
+    console.log(status);
     yield prisma_1.default.product.update({
         where: {
             id: id,
@@ -299,6 +307,7 @@ const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             // isDraft: isDraft ?? undefined,
             // isPublish: isPublish ?? undefined,
             images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+            status: status !== null && status !== void 0 ? status : undefined,
             updatedAt: new Date().toISOString(),
         },
     });

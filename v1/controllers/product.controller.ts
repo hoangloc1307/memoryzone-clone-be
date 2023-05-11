@@ -15,6 +15,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
         name: {
           contains: name ? String(name) : undefined,
         },
+        status: true,
       },
     }),
     prismaClient.product.findMany({
@@ -49,12 +50,14 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
             name: true,
           },
         },
+        status: true,
         updatedAt: true,
       },
       where: {
         name: {
           contains: name ? String(name) : undefined,
         },
+        status: true,
       },
       orderBy: {
         id: 'desc',
@@ -80,6 +83,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
     quantity: product.quantity,
     rating: product.userFeedbacks.reduce((acc, cur) => acc + cur.rating, 0) / product.userFeedbacks.length,
     categories: product.categories.map(item => item.name),
+    status: product.status,
     updatedAt: product.updatedAt,
   }))
 
@@ -246,11 +250,14 @@ const addProductAttributes = async (req: Request, res: Response, next: NextFunct
 
 // [POST] /products/drafts
 const addDraftProduct = async (req: Request, res: Response, next: NextFunction) => {
-  await prismaClient.product.create({
+  const draft = await prismaClient.product.create({
     data: {},
+    select: {
+      id: true,
+    },
   })
 
-  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công' })
+  responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: draft })
 }
 
 // [PATCH] /products/:id
@@ -270,6 +277,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     typeId,
     attributes,
     altImages,
+    status,
   }: {
     name?: string
     price?: number
@@ -283,6 +291,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     typeId?: number
     attributes?: { id: number; value: string }[]
     altImages?: string[]
+    status?: boolean
   } = req.body
   let imagesCreateMany: {
     deleteHash: string
@@ -328,6 +337,8 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     }))
   }
 
+  console.log(status)
+
   await prismaClient.product.update({
     where: {
       id: id,
@@ -350,6 +361,7 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
       // isDraft: isDraft ?? undefined,
       // isPublish: isPublish ?? undefined,
       images: imagesCreateMany.length > 0 ? { createMany: { data: imagesCreateMany } } : undefined,
+      status: status ?? undefined,
       updatedAt: new Date().toISOString(),
     },
   })
