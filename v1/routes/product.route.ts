@@ -15,9 +15,8 @@ productRouter.get(
   validationMiddleware.validatePayload,
   catchError(productController.getProducts)
 )
-productRouter.get('/vendors', catchError(productController.getProductVendors))
-productRouter.get('/types', catchError(productController.getProductTypes))
-productRouter.get('/attributes/:productTypeId', catchError(productController.getProductAttributes))
+productRouter.get('/vendors', catchError(productController.getVendors))
+productRouter.get('/attributes/:productTypeId', catchError(productController.getAttributes))
 productRouter.get('/:id', catchError(productController.getProductById))
 
 // POST

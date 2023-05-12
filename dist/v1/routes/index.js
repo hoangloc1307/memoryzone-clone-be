@@ -10,6 +10,7 @@ const user_route_1 = __importDefault(require("./user.route"));
 const category_route_1 = __importDefault(require("./category.route"));
 const image_route_1 = __importDefault(require("./image.route"));
 const feedback_route_1 = __importDefault(require("./feedback.route"));
+const type_route_1 = __importDefault(require("./type.route"));
 function routes(app) {
     app.use('/api/v1/auth', auth_route_1.default);
     app.use('/api/v1/products', product_route_1.default);
@@ -18,6 +19,7 @@ function routes(app) {
     app.use('/api/v1/category', category_route_1.default);
     app.use('/api/v1/image', image_route_1.default);
     app.use('/api/v1/feedback', feedback_route_1.default);
+    app.use('/api/v1/type', type_route_1.default);
 }
 exports.default = routes;
 //# sourceMappingURL=index.js.map

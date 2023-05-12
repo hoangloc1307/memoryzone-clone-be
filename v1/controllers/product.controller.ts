@@ -5,18 +5,19 @@ import { imgurDelete, imgurUpload } from '../utils/imgur'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
 
-// [GET] /products
 const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   const { limit, page, name } = req.query
 
+  const where = {
+    name: {
+      contains: name ? String(name) : undefined,
+    },
+    status: true,
+  }
+
   const [totalRow, products] = await prismaClient.$transaction([
     prismaClient.product.count({
-      where: {
-        name: {
-          contains: name ? String(name) : undefined,
-        },
-        status: true,
-      },
+      where: where,
     }),
     prismaClient.product.findMany({
       select: {
@@ -53,12 +54,7 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
         status: true,
         updatedAt: true,
       },
-      where: {
-        name: {
-          contains: name ? String(name) : undefined,
-        },
-        status: true,
-      },
+      where: where,
       orderBy: {
         id: 'desc',
       },
@@ -95,13 +91,12 @@ const getProducts = async (req: Request, res: Response, next: NextFunction) => {
   responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData })
 }
 
-// [GET] /products/:id
 const getProductById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params
 
   const product = await prismaClient.product.findUniqueOrThrow({
     where: {
-      id: Number(id),
+      id: Number(id) || 0,
     },
     select: {
       id: true,
@@ -169,8 +164,7 @@ const getProductById = async (req: Request, res: Response, next: NextFunction) =
   responseSuccess(res, STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData })
 }
 
-// [GET] /products/vendors
-const getProductVendors = async (req: Request, res: Response, next: NextFunction) => {
+const getVendors = async (req: Request, res: Response, next: NextFunction) => {
   const vendors = await prismaClient.product.findMany({
     where: {
       vendor: {
@@ -188,8 +182,7 @@ const getProductVendors = async (req: Request, res: Response, next: NextFunction
   responseSuccess(res, STATUS.Ok, { message: 'Lấy thương hiệu thành công', data: responseData })
 }
 
-// [GET] /products/attributes
-const getProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
+const getAttributes = async (req: Request, res: Response, next: NextFunction) => {
   const { productTypeId } = req.params
 
   const attributes = await prismaClient.productType.findUniqueOrThrow({
@@ -215,16 +208,6 @@ const getProductAttributes = async (req: Request, res: Response, next: NextFunct
   responseSuccess(res, STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: responseData })
 }
 
-// [GET] /products/types
-const getProductTypes = async (req: Request, res: Response, next: NextFunction) => {
-  const types = await prismaClient.productType.findMany()
-
-  const responseData: { id: number; name: string }[] = types.map(type => ({ id: type.id, name: type.type }))
-
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: responseData })
-}
-
-// [POST] /products/attributes/:productTypeId
 const addProductAttributes = async (req: Request, res: Response, next: NextFunction) => {
   const { attributes } = req.body
   const { productTypeId } = req.params
@@ -248,7 +231,6 @@ const addProductAttributes = async (req: Request, res: Response, next: NextFunct
   responseSuccess(res, STATUS.Created, { message: 'Thêm thuộc tính thành công' })
 }
 
-// [POST] /products/drafts
 const addDraftProduct = async (req: Request, res: Response, next: NextFunction) => {
   const draft = await prismaClient.product.create({
     data: {},
@@ -260,7 +242,6 @@ const addDraftProduct = async (req: Request, res: Response, next: NextFunction) 
   responseSuccess(res, STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: draft })
 }
 
-// [PATCH] /products/:id
 const updateProduct = async (req: Request, res: Response, next: NextFunction) => {
   const id: number = Number(req.params.id)
   const files = req.files as Express.Multer.File[]
@@ -369,7 +350,6 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
   responseSuccess(res, STATUS.Ok, { message: 'Cập nhật sản phẩm thành công' })
 }
 
-// [PATCH] /products/images
 const deleteProductImage = async (req: Request, res: Response, next: NextFunction) => {
   const { ids, deleteHashs } = req.body
 
@@ -390,9 +370,8 @@ const deleteProductImage = async (req: Request, res: Response, next: NextFunctio
 const productController = {
   getProducts,
   getProductById,
-  getProductVendors,
-  getProductAttributes,
-  getProductTypes,
+  getVendors,
+  getAttributes,
   addProductAttributes,
   addDraftProduct,
   updateProduct,

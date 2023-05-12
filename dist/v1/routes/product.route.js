@@ -13,9 +13,8 @@ const upload_middleware_1 = __importDefault(require("../middlewares/upload.middl
 const productRouter = (0, express_1.Router)();
 // GET
 productRouter.get('/', product_validation_1.default.getProducts, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.getProducts));
-productRouter.get('/vendors', (0, response_1.catchError)(product_controller_1.default.getProductVendors));
-productRouter.get('/types', (0, response_1.catchError)(product_controller_1.default.getProductTypes));
-productRouter.get('/attributes/:productTypeId', (0, response_1.catchError)(product_controller_1.default.getProductAttributes));
+productRouter.get('/vendors', (0, response_1.catchError)(product_controller_1.default.getVendors));
+productRouter.get('/attributes/:productTypeId', (0, response_1.catchError)(product_controller_1.default.getAttributes));
 productRouter.get('/:id', (0, response_1.catchError)(product_controller_1.default.getProductById));
 // POST
 productRouter.post('/drafts', auth_middleware_1.default.verifyAdmin, (0, response_1.catchError)(product_controller_1.default.addDraftProduct));

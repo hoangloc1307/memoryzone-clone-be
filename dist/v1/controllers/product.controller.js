@@ -16,17 +16,17 @@ const httpStatus_1 = require("../constants/httpStatus");
 const imgur_1 = require("../utils/imgur");
 const prisma_1 = __importDefault(require("../utils/prisma"));
 const response_1 = require("../utils/response");
-// [GET] /products
 const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { limit, page, name } = req.query;
+    const where = {
+        name: {
+            contains: name ? String(name) : undefined,
+        },
+        status: true,
+    };
     const [totalRow, products] = yield prisma_1.default.$transaction([
         prisma_1.default.product.count({
-            where: {
-                name: {
-                    contains: name ? String(name) : undefined,
-                },
-                status: true,
-            },
+            where: where,
         }),
         prisma_1.default.product.findMany({
             select: {
@@ -63,12 +63,7 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 status: true,
                 updatedAt: true,
             },
-            where: {
-                name: {
-                    contains: name ? String(name) : undefined,
-                },
-                status: true,
-            },
+            where: where,
             orderBy: {
                 id: 'desc',
             },
@@ -103,13 +98,12 @@ const getProducts = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     };
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData });
 });
-// [GET] /products/:id
 const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const { id } = req.params;
     const product = yield prisma_1.default.product.findUniqueOrThrow({
         where: {
-            id: Number(id),
+            id: Number(id) || 0,
         },
         select: {
             id: true,
@@ -174,8 +168,7 @@ const getProductById = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     };
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy sản phẩm thành công', data: responseData });
 });
-// [GET] /products/vendors
-const getProductVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const vendors = yield prisma_1.default.product.findMany({
         where: {
             vendor: {
@@ -190,8 +183,7 @@ const getProductVendors = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     const responseData = vendors.map(item => item.vendor);
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy thương hiệu thành công', data: responseData });
 });
-// [GET] /products/attributes
-const getProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+const getAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { productTypeId } = req.params;
     const attributes = yield prisma_1.default.productType.findUniqueOrThrow({
         where: {
@@ -212,13 +204,6 @@ const getProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 
     })) || [];
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy thuộc tính sản phẩm thành công', data: responseData });
 });
-// [GET] /products/types
-const getProductTypes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const types = yield prisma_1.default.productType.findMany();
-    const responseData = types.map(type => ({ id: type.id, name: type.type }));
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy loại sản phẩm thành công', data: responseData });
-});
-// [POST] /products/attributes/:productTypeId
 const addProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { attributes } = req.body;
     const { productTypeId } = req.params;
@@ -238,7 +223,6 @@ const addProductAttributes = (req, res, next) => __awaiter(void 0, void 0, void 
     });
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Thêm thuộc tính thành công' });
 });
-// [POST] /products/drafts
 const addDraftProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const draft = yield prisma_1.default.product.create({
         data: {},
@@ -248,7 +232,6 @@ const addDraftProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     });
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Tạo bản nháp sản phẩm thành công', data: draft });
 });
-// [PATCH] /products/:id
 const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
     const files = req.files;
@@ -313,7 +296,6 @@ const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     });
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật sản phẩm thành công' });
 });
-// [PATCH] /products/images
 const deleteProductImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { ids, deleteHashs } = req.body;
     yield Promise.all([
@@ -331,9 +313,8 @@ const deleteProductImage = (req, res, next) => __awaiter(void 0, void 0, void 0,
 const productController = {
     getProducts,
     getProductById,
-    getProductVendors,
-    getProductAttributes,
-    getProductTypes,
+    getVendors,
+    getAttributes,
     addProductAttributes,
     addDraftProduct,
     updateProduct,
