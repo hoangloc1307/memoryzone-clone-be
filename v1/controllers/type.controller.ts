@@ -39,9 +39,27 @@ const addType = async (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
+// Update type
+const updateType = async (req: Request, res: Response, next: NextFunction) => {
+  const id = Number(req.params.id)
+  const { type } = req.body
+
+  await prismaClient.productType.update({
+    where: {
+      id: id,
+    },
+    data: {
+      type: type,
+    },
+  })
+
+  responseSuccess(res, STATUS.Ok, { message: 'Cập nhật loại sản phẩm thành công' })
+}
+
 const typeController = {
   getTypes,
   addType,
+  updateType,
 }
 
 export default typeController

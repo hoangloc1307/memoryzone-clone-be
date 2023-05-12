@@ -10,5 +10,6 @@ const auth_middleware_1 = __importDefault(require("../middlewares/auth.middlewar
 const typeRouter = (0, express_1.Router)();
 typeRouter.get('/', (0, response_1.catchError)(type_controller_1.default.getTypes));
 typeRouter.post('/', auth_middleware_1.default.verifyAdmin, (0, response_1.catchError)(type_controller_1.default.addType));
+typeRouter.patch('/:id', auth_middleware_1.default.verifyAdmin, (0, response_1.catchError)(type_controller_1.default.updateType));
 exports.default = typeRouter;
 //# sourceMappingURL=type.route.js.map

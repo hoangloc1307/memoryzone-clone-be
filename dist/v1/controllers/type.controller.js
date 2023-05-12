@@ -45,9 +45,24 @@ const addType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         next(new error_1.default(httpStatus_1.STATUS.BadRequest, 'Loại sản phẩm đã tồn tại', 'TYPE_ALREADY_EXISTS'));
     }
 });
+// Update type
+const updateType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = Number(req.params.id);
+    const { type } = req.body;
+    yield prisma_1.default.productType.update({
+        where: {
+            id: id,
+        },
+        data: {
+            type: type,
+        },
+    });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật loại sản phẩm thành công' });
+});
 const typeController = {
     getTypes,
     addType,
+    updateType,
 };
 exports.default = typeController;
 //# sourceMappingURL=type.controller.js.map
