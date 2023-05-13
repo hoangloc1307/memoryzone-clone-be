@@ -48,21 +48,80 @@ const addType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 // Update type
 const updateType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
-    const { type } = req.body;
+    const { type, attributes } = req.body;
+    let connectOrCreateAttributes = [];
+    let disconnectAttributes = [];
+    if (attributes) {
+        const res = yield prisma_1.default.productType.findUnique({
+            where: {
+                id: id,
+            },
+            select: {
+                productAttributes: {
+                    select: {
+                        attribute: true,
+                    },
+                },
+            },
+        });
+        const attributesInDB = (res === null || res === void 0 ? void 0 : res.productAttributes.map(item => item.attribute)) || [];
+        connectOrCreateAttributes = attributes.reduce((result, current) => {
+            if (!attributesInDB.includes(current)) {
+                return [
+                    ...result,
+                    {
+                        create: {
+                            attribute: current,
+                        },
+                        where: {
+                            attribute: current,
+                        },
+                    },
+                ];
+            }
+            return [...result];
+        }, []);
+        disconnectAttributes = attributesInDB.reduce((result, current) => {
+            if (!attributes.includes(current)) {
+                return [
+                    ...result,
+                    {
+                        attribute: current,
+                    },
+                ];
+            }
+            return [...result];
+        }, []);
+    }
     yield prisma_1.default.productType.update({
         where: {
             id: id,
         },
         data: {
             type: type,
+            productAttributes: {
+                connectOrCreate: connectOrCreateAttributes.length > 0 ? connectOrCreateAttributes : undefined,
+                disconnect: disconnectAttributes.length > 0 ? disconnectAttributes : undefined,
+            },
         },
     });
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật loại sản phẩm thành công' });
+});
+// Delete type
+const deleteType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = Number(req.params.id);
+    yield prisma_1.default.productType.delete({
+        where: {
+            id: id,
+        },
+    });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Xoá loại sản phẩm thành công' });
 });
 const typeController = {
     getTypes,
     addType,
     updateType,
+    deleteType,
 };
 exports.default = typeController;
 //# sourceMappingURL=type.controller.js.map

@@ -318,8 +318,6 @@ const updateProduct = async (req: Request, res: Response, next: NextFunction) =>
     }))
   }
 
-  console.log(status)
-
   await prismaClient.product.update({
     where: {
       id: id,

@@ -267,7 +267,6 @@ const updateProduct = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             alt: (altImages === null || altImages === void 0 ? void 0 : altImages[index]) || 'Product image',
         }));
     }
-    console.log(status);
     yield prisma_1.default.product.update({
         where: {
             id: id,

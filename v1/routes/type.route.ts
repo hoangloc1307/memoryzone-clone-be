@@ -8,5 +8,6 @@ const typeRouter = Router()
 typeRouter.get('/', catchError(typeController.getTypes))
 typeRouter.post('/', authMiddleware.verifyAdmin, catchError(typeController.addType))
 typeRouter.patch('/:id', authMiddleware.verifyAdmin, catchError(typeController.updateType))
+typeRouter.delete('/:id', authMiddleware.verifyAdmin, catchError(typeController.deleteType))
 
 export default typeRouter

@@ -4,6 +4,19 @@ import { responseSuccess } from '../utils/response'
 import { STATUS } from '../constants/httpStatus'
 import AppError from '../utils/error'
 
+interface ConnectOrCreateAttribute {
+  create: {
+    attribute: string
+  }
+  where: {
+    attribute: string
+  }
+}
+
+interface DisconnectAttribute {
+  attribute: string
+}
+
 // Get types
 const getTypes = async (req: Request, res: Response, next: NextFunction) => {
   const types = await prismaClient.productType.findMany()
@@ -42,7 +55,54 @@ const addType = async (req: Request, res: Response, next: NextFunction) => {
 // Update type
 const updateType = async (req: Request, res: Response, next: NextFunction) => {
   const id = Number(req.params.id)
-  const { type } = req.body
+  const { type, attributes }: { type: string; attributes: string[] } = req.body
+  let connectOrCreateAttributes: ConnectOrCreateAttribute[] = []
+  let disconnectAttributes: DisconnectAttribute[] = []
+
+  if (attributes) {
+    const res = await prismaClient.productType.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        productAttributes: {
+          select: {
+            attribute: true,
+          },
+        },
+      },
+    })
+    const attributesInDB = res?.productAttributes.map(item => item.attribute) || []
+
+    connectOrCreateAttributes = attributes.reduce((result: ConnectOrCreateAttribute[], current) => {
+      if (!attributesInDB.includes(current)) {
+        return [
+          ...result,
+          {
+            create: {
+              attribute: current,
+            },
+            where: {
+              attribute: current,
+            },
+          },
+        ]
+      }
+      return [...result]
+    }, [])
+
+    disconnectAttributes = attributesInDB.reduce((result: DisconnectAttribute[], current) => {
+      if (!attributes.includes(current)) {
+        return [
+          ...result,
+          {
+            attribute: current,
+          },
+        ]
+      }
+      return [...result]
+    }, [])
+  }
 
   await prismaClient.productType.update({
     where: {
@@ -50,16 +110,34 @@ const updateType = async (req: Request, res: Response, next: NextFunction) => {
     },
     data: {
       type: type,
+      productAttributes: {
+        connectOrCreate: connectOrCreateAttributes.length > 0 ? connectOrCreateAttributes : undefined,
+        disconnect: disconnectAttributes.length > 0 ? disconnectAttributes : undefined,
+      },
     },
   })
 
   responseSuccess(res, STATUS.Ok, { message: 'Cập nhật loại sản phẩm thành công' })
 }
 
+// Delete type
+const deleteType = async (req: Request, res: Response, next: NextFunction) => {
+  const id = Number(req.params.id)
+
+  await prismaClient.productType.delete({
+    where: {
+      id: id,
+    },
+  })
+
+  responseSuccess(res, STATUS.Ok, { message: 'Xoá loại sản phẩm thành công' })
+}
+
 const typeController = {
   getTypes,
   addType,
   updateType,
+  deleteType,
 }
 
 export default typeController
