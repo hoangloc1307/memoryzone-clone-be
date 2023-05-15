@@ -60,7 +60,7 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     });
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật danh mục thành công' });
 });
-// [DELETE] /category/:id
+// Delete category
 const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
     const deleteCategory = (id) => __awaiter(void 0, void 0, void 0, function* () {

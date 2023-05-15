@@ -257,7 +257,6 @@ Làm mới access token khi hết hạn.
 
 | Key             | Value                    |
 | --------------- | ------------------------ |
-| `Content-Type`  | `application/json`       |
 | `Authorization` | `Bearer {{accessToken}}` |
 
 #### Response
@@ -275,10 +274,10 @@ Làm mới access token khi hết hạn.
 
 ##### Error
 
-| Code  | Description                                   |
-| ----- | --------------------------------------------- |
-| `400` | Access token chưa được gửi.                   |
-| `401` | Token không đúng, access token không tồn tại. |
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
 
 **Ví dụ**
 
@@ -441,5 +440,313 @@ Cập nhật danh mục.
 {
   "status": "Success",
   "message": "Cập nhật danh mục thành công"
+}
+```
+
+### 2.4. Xoá danh mục (Delete category)
+
+Xoá danh mục.
+
+#### Endpoint
+
+`DELETE /category/:id` **`ADMIN`**
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Xoá danh mục thành công"
+}
+```
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
+  "message": "Access token chưa được gửi"
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_ERROR",
+  "message": "Token không đúng"
+}
+```
+
+## III. Type
+
+### 3.1. Lấy loại sản phẩm (Get all type)
+
+Lấy danh sách toàn bộ loại sản phẩm.
+
+#### Endpoint
+
+`GET /type`
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Lấy loại sản phẩm thành công",
+  "data": [
+    {
+      "id": 1,
+      "name": "Laptop"
+    },
+    {
+      "id": 2,
+      "name": "PC"
+    },
+    {
+      "id": 3,
+      "name": "Chuột"
+    }
+  ]
+}
+```
+
+| Name   | Type     | Description        |
+| ------ | -------- | ------------------ |
+| `id`   | `Number` | Id loại sản phẩm.  |
+| `name` | `String` | Tên loại sản phẩm. |
+
+### 3.2. Thêm loại sản phẩm (Add type)
+
+Thêm loại sản phẩm.
+
+#### Endpoint
+
+`POST /type` **`ADMIN`**
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Content-Type	`  | `application/json`       |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+##### Body
+
+```json
+{
+  "type": "Test"
+}
+```
+
+| Name    | Type     | Description        |
+| ------- | -------- | ------------------ |
+| `type*` | `String` | Tên loại sản phẩm. |
+
+#### Response
+
+##### Success
+
+`201 Created`
+
+```json
+{
+  "status": "Success",
+  "message": "Thêm loại sản phẩm thành công"
+}
+```
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi, loại sản phẩm đã tồn tại.        |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "TYPE_ALREADY_EXISTS",
+  "message": "Loại sản phẩm đã tồn tại"
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_ERROR",
+  "message": "Token không đúng"
+}
+```
+
+### 3.2. Cập nhật loại sản phẩm (Update type)
+
+Cập nhật loại sản phẩm.
+
+#### Endpoint
+
+`PATCH /type/:id` **`ADMIN`**
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Content-Type`  | `application/json`       |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+##### Body
+
+```json
+{
+  "type": "Test 2",
+  "attributes": ["Test"]
+}
+```
+
+| Name         | Type       | Description                                     |
+| ------------ | ---------- | ----------------------------------------------- |
+| `type`       | `String`   | Tên loại sản phẩm.                              |
+| `attributes` | `String[]` | Danh sách các thuộc tính gán cho loại sản phẩm. |
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Cập nhật loại sản phẩm thành công"
+}
+```
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "PAYLOAD_ERROR",
+  "message": "Lỗi",
+  "data": {
+    "attributes": "Phải là mảng"
+  }
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_ERROR",
+  "message": "Token không đúng"
+}
+```
+
+### 3.4. Xoá loại sản phẩm (Delete type)
+
+Xoá loại sản phẩm.
+
+#### Endpoint
+
+`DELETE /type/:id` **`ADMIN`**
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Xoá loại sản phẩm thành công"
+}
+```
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "PAYLOAD_ERROR",
+  "message": "Lỗi",
+  "data": {
+    "id": "Phải là số"
+  }
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_ERROR",
+  "message": "Token không đúng"
 }
 ```

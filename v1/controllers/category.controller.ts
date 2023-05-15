@@ -56,7 +56,7 @@ const updateCategory = async (req: Request, res: Response, next: NextFunction) =
   responseSuccess(res, STATUS.Ok, { message: 'Cập nhật danh mục thành công' })
 }
 
-// [DELETE] /category/:id
+// Delete category
 const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
   const id = Number(req.params.id)
 

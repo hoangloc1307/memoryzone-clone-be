@@ -1,6 +1,7 @@
 import { body } from 'express-validator'
 
 const login = [
+  // Email
   body('email')
     .trim()
     .notEmpty()
@@ -8,6 +9,7 @@ const login = [
     .normalizeEmail()
     .isEmail()
     .withMessage('Email không đúng định dạng'),
+  // Password
   body('password')
     .trim()
     .notEmpty()
@@ -16,7 +18,11 @@ const login = [
     .withMessage('Mật khẩu phải từ 6-32 kí tự'),
 ]
 
-const register = [...login, body('name').trim().notEmpty().withMessage('Tên không được để trống')]
+const register = [
+  ...login,
+  // Name
+  body('name').trim().notEmpty().withMessage('Tên không được để trống'),
+]
 
 const authValidate = {
   login,

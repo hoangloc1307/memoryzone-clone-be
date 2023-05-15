@@ -46,7 +46,7 @@ const addType = async (req: Request, res: Response, next: NextFunction) => {
       },
     })
 
-    responseSuccess(res, STATUS.Ok, { message: 'Thêm loại sản phẩm thành công' })
+    responseSuccess(res, STATUS.Created, { message: 'Thêm loại sản phẩm thành công' })
   } else {
     next(new AppError(STATUS.BadRequest, 'Loại sản phẩm đã tồn tại', 'TYPE_ALREADY_EXISTS'))
   }

@@ -39,7 +39,7 @@ const addType = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
                 type: type,
             },
         });
-        (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Thêm loại sản phẩm thành công' });
+        (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Thêm loại sản phẩm thành công' });
     }
     else {
         next(new error_1.default(httpStatus_1.STATUS.BadRequest, 'Loại sản phẩm đã tồn tại', 'TYPE_ALREADY_EXISTS'));
