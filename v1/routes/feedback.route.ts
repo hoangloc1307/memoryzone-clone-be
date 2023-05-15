@@ -5,6 +5,10 @@ import authMiddleware from '../middlewares/auth.middleware'
 
 const feedbackRouter = Router()
 
-feedbackRouter.post('/:productId', authMiddleware.verifyAccessToken, catchError(feedbackController.productFeedback))
+feedbackRouter.post(
+  '/:productId',
+  catchError(authMiddleware.verifyAccessToken),
+  catchError(feedbackController.productFeedback)
+)
 
 export default feedbackRouter

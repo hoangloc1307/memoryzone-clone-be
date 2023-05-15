@@ -7,15 +7,25 @@ import { catchError } from '../utils/response'
 
 const authRouter = Router()
 
+// Register
 authRouter.post(
   '/register',
   authValidate.register,
   validationMiddleware.validatePayload,
   catchError(authController.register)
 )
+
+// Login
 authRouter.post('/login', authValidate.login, validationMiddleware.validatePayload, catchError(authController.login))
-authRouter.patch('/refresh-token', authMiddleware.verifyRefreshToken, catchError(authController.refreshToken))
-authRouter.delete('/logout', authMiddleware.verifyAccessToken, catchError(authController.logout))
-// authRouter.post('/get-access-token', authMiddleware.verifyOAuthToken, catchError(authController.getAccessToken))
+
+// Refresh token
+authRouter.patch(
+  '/refresh-token',
+  catchError(authMiddleware.verifyRefreshToken),
+  catchError(authController.refreshToken)
+)
+
+// Logout
+authRouter.delete('/logout', catchError(authMiddleware.verifyAccessToken), catchError(authController.logout))
 
 export default authRouter

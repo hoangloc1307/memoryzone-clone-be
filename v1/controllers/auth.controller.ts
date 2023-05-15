@@ -7,23 +7,22 @@ import { signToken } from '../utils/jwt'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
 
-// [POST] /auth/register
+// Register
 const register = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password, name } = req.body
 
   // Check email exists
   const existsEmail = await prismaClient.account.findUnique({
-    where: {
-      email: email,
-    },
+    where: { email: email },
+    select: { email: true },
   })
 
   if (!existsEmail) {
     // Hash password
     const passwordHash = await hashPassword(password)
 
-    // Save to dabatabase
-    const account = await prismaClient.account.create({
+    // Save account and create user
+    await prismaClient.account.create({
       data: {
         email: email,
         password: passwordHash,
@@ -34,23 +33,15 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
           },
         },
       },
-      select: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
     })
 
-    responseSuccess(res, STATUS.Created, { message: 'Đăng ký thành công', data: account })
+    responseSuccess(res, STATUS.Created, { message: 'Đăng ký thành công' })
   } else {
-    next(new AppError(STATUS.BadRequest, { email: 'Email đã được đăng ký trước đó' }, 'EMAIL_EXISTS'))
+    next(new AppError(STATUS.BadRequest, { email: 'Email đã được đăng ký trước đó' }, 'EMAIL_ALREADY_EXISTS'))
   }
 }
 
-// [POST] /auth/login
+// Login
 const login = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body
 
@@ -68,19 +59,23 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         select: {
           id: true,
           name: true,
-          avatar: { select: { link: true } },
+          avatar: {
+            select: {
+              link: true,
+            },
+          },
         },
       },
     },
   })
 
   if (account) {
-    // Check password right
+    // Verify password
     const isPasswordRight = await verifyPassword(password, account.password)
+
     if (isPasswordRight) {
-      // Check account status
       if (account.status) {
-        // Generate token
+        // Create payload
         const payload = {
           id: account.user.id,
           role: account.role,
@@ -88,6 +83,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           avatar: account.user.avatar?.link || null,
         }
 
+        // Generate token
         const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
           expiresIn: jwtConfig.AccessTokenExpiresTime,
         })
@@ -95,7 +91,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           expiresIn: jwtConfig.RefreshTokenExpiresTime,
         })
 
-        // Update table token
+        // Update token in database
         await prismaClient.token.upsert({
           where: {
             accountId: account.id,
@@ -120,17 +116,17 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
           },
         })
       } else {
-        next(new AppError(STATUS.BadRequest, 'Tài khoản đang bị khoá', 'ACCOUNT_HAS_BEEN_BLOCK'))
+        next(new AppError(STATUS.Unauthorized, 'Tài khoản đang bị khoá', 'ACCOUNT_HAS_BEEN_BLOCKED'))
       }
     } else {
-      next(new AppError(STATUS.BadRequest, 'Sai mật khẩu', 'PASSWORD_WRONG'))
+      next(new AppError(STATUS.Unauthorized, 'Sai mật khẩu', 'INCORRECT_PASSWORD'))
     }
   } else {
-    next(new AppError(STATUS.BadRequest, 'Email không tồn tại', 'EMAIL_NOT_EXISTS'))
+    next(new AppError(STATUS.Unauthorized, 'Email không tồn tại', 'EMAIL_NOT_EXISTS'))
   }
 }
 
-// [DELETE] /auth/logout
+// Logout
 const logout = async (req: Request, res: Response, next: NextFunction) => {
   // Delete token in database
   await prismaClient.user.update({
@@ -151,20 +147,29 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
   responseSuccess(res, STATUS.Ok, { message: 'Đăng xuất thành công' })
 }
 
-// [PATCH] /auth/refresh-token
+// Refresh token
 const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
-  // Get account info to create payload
+  // Get account info
   const account = await prismaClient.account.findUniqueOrThrow({
-    where: {
-      userId: req.jwtDecoded.id,
-    },
+    where: { userId: req.jwtDecoded.id },
     select: {
       id: true,
       role: true,
-      user: { select: { id: true, name: true, avatar: { select: { link: true } } } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          avatar: {
+            select: {
+              link: true,
+            },
+          },
+        },
+      },
     },
   })
 
+  // Create payload
   const payload = {
     id: account.user.id,
     role: account.role,
@@ -196,134 +201,11 @@ const refreshToken = async (req: Request, res: Response, next: NextFunction) => 
   })
 }
 
-// [POST] /auth/get-access-token
-// const getAccessToken = async (req: Request, res: Response, next: NextFunction) => {
-//   const { data } = req
-//   const { email, token, name, image } = req.body
-
-//   const account = await prismaClient.account.findFirst({
-//     where: {
-//       email: email,
-//     },
-//     include: {
-//       token: true,
-//       user: {
-//         include: {
-//           avatar: true,
-//         },
-//       },
-//     },
-//   })
-//   // Check email is exists
-//   if (account) {
-//     if (account.status) {
-//       // Generate token and update to database
-//       const payload = {
-//         id: account.user.id,
-//         email: account.email,
-//         role: account.role,
-//         name: account.user.name,
-//         avatar: account.user.avatar?.link || null,
-//       }
-
-//       const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
-//         expiresIn: jwtConfig.AccessTokenExpiresTime,
-//       })
-//       const refreshToken = signToken(payload, jwtConfig.RefreshTokenSecret, {
-//         expiresIn: jwtConfig.RefreshTokenExpiresTime,
-//       })
-
-//       await prismaClient.token.upsert({
-//         where: {
-//           accountId: account.id,
-//         },
-//         create: {
-//           accessToken: accessToken,
-//           refreshToken: refreshToken,
-//           accountId: account.id,
-//         },
-//         update: {
-//           accessToken: accessToken,
-//           refreshToken: refreshToken,
-//         },
-//       })
-
-//       responseSuccess(res, STATUS.Ok, {
-//         message: 'Login thành công',
-//         data: {
-//           ...payload,
-//           accessToken: accessToken,
-//           refreshToken: refreshToken,
-//         },
-//       })
-//     } else {
-//       next(new AppError(STATUS.Unauthorized, 'Tài khoản đang bị khoá', 'ACCOUT_HAS_BEEN_BLOCK'))
-//     }
-//   } else {
-//     // If not exists email then create new account
-//     const passwordHash = await hashPassword(token)
-//     const account = await prismaClient.account.create({
-//       data: {
-//         email: email,
-//         password: passwordHash,
-//         user: {
-//           create: {
-//             email: email,
-//             name: name,
-//             avatar: image,
-//           },
-//         },
-//       },
-//       include: {
-//         user: {
-//           include: {
-//             avatar: true,
-//           },
-//         },
-//       },
-//     })
-
-//     // Generate token
-//     const payload = {
-//       id: account.user.id,
-//       email: account.email,
-//       role: account.role,
-//       name: account.user.name,
-//       avatar: account.user.avatar?.link || null,
-//     }
-
-//     const accessToken = signToken(payload, jwtConfig.AccessTokenSecret, {
-//       expiresIn: jwtConfig.AccessTokenExpiresTime,
-//     })
-//     const refreshToken = signToken(payload, jwtConfig.RefreshTokenSecret, {
-//       expiresIn: jwtConfig.RefreshTokenExpiresTime,
-//     })
-
-//     await prismaClient.token.create({
-//       data: {
-//         accessToken: accessToken,
-//         refreshToken: refreshToken,
-//         accountId: account.id,
-//       },
-//     })
-
-//     responseSuccess(res, STATUS.Ok, {
-//       message: 'Login thành công',
-//       data: {
-//         ...payload,
-//         accessToken: accessToken,
-//         refreshToken: refreshToken,
-//       },
-//     })
-//   }
-// }
-
 const authController = {
   register,
   login,
   logout,
   refreshToken,
-  // getAccessToken,
 }
 
 export default authController

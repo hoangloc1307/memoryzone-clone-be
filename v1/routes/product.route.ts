@@ -20,10 +20,10 @@ productRouter.get('/attributes/:productTypeId', catchError(productController.get
 productRouter.get('/:id', catchError(productController.getProductById))
 
 // POST
-productRouter.post('/drafts', authMiddleware.verifyAdmin, catchError(productController.addDraftProduct))
+productRouter.post('/drafts', catchError(authMiddleware.verifyAdmin), catchError(productController.addDraftProduct))
 productRouter.post(
   '/attributes/:productTypeId',
-  authMiddleware.verifyAdmin,
+  catchError(authMiddleware.verifyAdmin),
   productValidate.addProductAttributes,
   validationMiddleware.validatePayload,
   catchError(productController.addProductAttributes)
@@ -32,14 +32,14 @@ productRouter.post(
 // PATCH
 productRouter.patch(
   '/images',
-  authMiddleware.verifyAdmin,
+  catchError(authMiddleware.verifyAdmin),
   productValidate.deleteProductImage,
   validationMiddleware.validatePayload,
   catchError(productController.deleteProductImage)
 )
 productRouter.patch(
   '/:id',
-  authMiddleware.verifyAdmin,
+  catchError(authMiddleware.verifyAdmin),
   productValidate.updateProduct,
   uploadMiddleware.productImages,
   validationMiddleware.validatePayload,

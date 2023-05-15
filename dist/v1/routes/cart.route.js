@@ -10,9 +10,9 @@ const cart_controller_1 = __importDefault(require("../controllers/cart.controlle
 const auth_middleware_1 = __importDefault(require("../middlewares/auth.middleware"));
 const response_1 = require("../utils/response");
 const cartRouter = (0, express_1.Router)();
-cartRouter.get('/', auth_middleware_1.default.verifyAccessToken, (0, response_1.catchError)(cart_controller_1.default.getCart));
-cartRouter.post('/', auth_middleware_1.default.verifyAccessToken, cart_validation_1.default.addToCart, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(cart_controller_1.default.addToCart));
-cartRouter.patch('/', auth_middleware_1.default.verifyAccessToken, cart_validation_1.default.updateCart, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(cart_controller_1.default.updateCart));
-cartRouter.delete('/', auth_middleware_1.default.verifyAccessToken, cart_validation_1.default.addToCart, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(cart_controller_1.default.deleteCartItem));
+cartRouter.get('/', (0, response_1.catchError)(auth_middleware_1.default.verifyAccessToken), (0, response_1.catchError)(cart_controller_1.default.getCart));
+cartRouter.post('/', (0, response_1.catchError)(auth_middleware_1.default.verifyAccessToken), cart_validation_1.default.addToCart, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(cart_controller_1.default.addToCart));
+cartRouter.patch('/', (0, response_1.catchError)(auth_middleware_1.default.verifyAccessToken), cart_validation_1.default.updateCart, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(cart_controller_1.default.updateCart));
+cartRouter.delete('/', (0, response_1.catchError)(auth_middleware_1.default.verifyAccessToken), cart_validation_1.default.addToCart, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(cart_controller_1.default.deleteCartItem));
 exports.default = cartRouter;
 //# sourceMappingURL=cart.route.js.map

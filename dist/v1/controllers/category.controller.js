@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const httpStatus_1 = require("../constants/httpStatus");
 const prisma_1 = __importDefault(require("../utils/prisma"));
 const response_1 = require("../utils/response");
-// [GET] /category
+// Get all categories
 const getProductCategories = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const categories = yield prisma_1.default.category.findMany({
         orderBy: [
@@ -30,12 +30,9 @@ const getProductCategories = (req, res, next) => __awaiter(void 0, void 0, void 
             },
         ],
     });
-    const responseData = categories.map(category => {
-        return category.parentId === null ? Object.assign(Object.assign({}, category), { parentId: 0 }) : category;
-    });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy danh mục thành công', data: responseData });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Lấy danh mục thành công', data: categories });
 });
-// [POST] /category
+// Add category
 const addCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, parentId, order } = req.body;
     yield prisma_1.default.category.create({
@@ -45,13 +42,13 @@ const addCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             order: Number(order) || 0,
         },
     });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Thêm danh mục thành công' });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Thêm danh mục thành công' });
 });
-// [PATCH] /category
+// Update category
 const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, parentId, order } = req.body;
     const id = Number(req.params.id);
-    const category = yield prisma_1.default.category.update({
+    const { name, parentId, order } = req.body;
+    yield prisma_1.default.category.update({
         where: {
             id: id,
         },
@@ -61,7 +58,7 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             order: order !== null && order !== void 0 ? order : undefined,
         },
     });
-    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật danh mục thành công', data: category });
+    (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật danh mục thành công' });
 });
 // [DELETE] /category/:id
 const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

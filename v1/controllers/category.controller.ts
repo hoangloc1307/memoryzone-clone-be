@@ -3,7 +3,7 @@ import { STATUS } from '../constants/httpStatus'
 import prismaClient from '../utils/prisma'
 import { responseSuccess } from '../utils/response'
 
-// [GET] /category
+// Get all categories
 const getProductCategories = async (req: Request, res: Response, next: NextFunction) => {
   const categories = await prismaClient.category.findMany({
     orderBy: [
@@ -19,14 +19,10 @@ const getProductCategories = async (req: Request, res: Response, next: NextFunct
     ],
   })
 
-  const responseData = categories.map(category => {
-    return category.parentId === null ? { ...category, parentId: 0 } : category
-  })
-
-  responseSuccess(res, STATUS.Ok, { message: 'Lấy danh mục thành công', data: responseData })
+  responseSuccess(res, STATUS.Ok, { message: 'Lấy danh mục thành công', data: categories })
 }
 
-// [POST] /category
+// Add category
 const addCategory = async (req: Request, res: Response, next: NextFunction) => {
   const { name, parentId, order } = req.body
 
@@ -38,15 +34,15 @@ const addCategory = async (req: Request, res: Response, next: NextFunction) => {
     },
   })
 
-  responseSuccess(res, STATUS.Ok, { message: 'Thêm danh mục thành công' })
+  responseSuccess(res, STATUS.Created, { message: 'Thêm danh mục thành công' })
 }
 
-// [PATCH] /category
+// Update category
 const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
-  const { name, parentId, order } = req.body
   const id = Number(req.params.id)
+  const { name, parentId, order } = req.body
 
-  const category = await prismaClient.category.update({
+  await prismaClient.category.update({
     where: {
       id: id,
     },
@@ -57,7 +53,7 @@ const updateCategory = async (req: Request, res: Response, next: NextFunction) =
     },
   })
 
-  responseSuccess(res, STATUS.Ok, { message: 'Cập nhật danh mục thành công', data: category })
+  responseSuccess(res, STATUS.Ok, { message: 'Cập nhật danh mục thành công' })
 }
 
 // [DELETE] /category/:id

@@ -7,24 +7,31 @@ import authMiddleware from '../middlewares/auth.middleware'
 
 const categoryRouter = Router()
 
+// Get all categories
 categoryRouter.get('/', catchError(categoryController.getProductCategories))
+
+// Add category
 categoryRouter.post(
   '/',
-  authMiddleware.verifyAdmin,
+  catchError(authMiddleware.verifyAdmin),
   categoryValidate.addCategory,
   validationMiddleware.validatePayload,
   catchError(categoryController.addCategory)
 )
+
+// Update category
 categoryRouter.patch(
   '/:id',
-  authMiddleware.verifyAdmin,
+  catchError(authMiddleware.verifyAdmin),
   categoryValidate.updateCategory,
   validationMiddleware.validatePayload,
   catchError(categoryController.updateCategory)
 )
+
+// Delete category
 categoryRouter.delete(
   '/:id',
-  authMiddleware.verifyAdmin,
+  catchError(authMiddleware.verifyAdmin),
   categoryValidate.deleteCategory,
   validationMiddleware.validatePayload,
   catchError(categoryController.deleteCategory)

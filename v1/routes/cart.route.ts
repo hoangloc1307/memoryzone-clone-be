@@ -7,24 +7,24 @@ import { catchError } from '../utils/response'
 
 const cartRouter = Router()
 
-cartRouter.get('/', authMiddleware.verifyAccessToken, catchError(cartController.getCart))
+cartRouter.get('/', catchError(authMiddleware.verifyAccessToken), catchError(cartController.getCart))
 cartRouter.post(
   '/',
-  authMiddleware.verifyAccessToken,
+  catchError(authMiddleware.verifyAccessToken),
   cartValidate.addToCart,
   validationMiddleware.validatePayload,
   catchError(cartController.addToCart)
 )
 cartRouter.patch(
   '/',
-  authMiddleware.verifyAccessToken,
+  catchError(authMiddleware.verifyAccessToken),
   cartValidate.updateCart,
   validationMiddleware.validatePayload,
   catchError(cartController.updateCart)
 )
 cartRouter.delete(
   '/',
-  authMiddleware.verifyAccessToken,
+  catchError(authMiddleware.verifyAccessToken),
   cartValidate.addToCart,
   validationMiddleware.validatePayload,
   catchError(cartController.deleteCartItem)

@@ -6,8 +6,8 @@ import authMiddleware from '../middlewares/auth.middleware'
 const typeRouter = Router()
 
 typeRouter.get('/', catchError(typeController.getTypes))
-typeRouter.post('/', authMiddleware.verifyAdmin, catchError(typeController.addType))
-typeRouter.patch('/:id', authMiddleware.verifyAdmin, catchError(typeController.updateType))
-typeRouter.delete('/:id', authMiddleware.verifyAdmin, catchError(typeController.deleteType))
+typeRouter.post('/', catchError(authMiddleware.verifyAdmin), catchError(typeController.addType))
+typeRouter.patch('/:id', catchError(authMiddleware.verifyAdmin), catchError(typeController.updateType))
+typeRouter.delete('/:id', catchError(authMiddleware.verifyAdmin), catchError(typeController.deleteType))
 
 export default typeRouter

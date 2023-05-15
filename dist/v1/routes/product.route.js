@@ -17,10 +17,10 @@ productRouter.get('/vendors', (0, response_1.catchError)(product_controller_1.de
 productRouter.get('/attributes/:productTypeId', (0, response_1.catchError)(product_controller_1.default.getAttributes));
 productRouter.get('/:id', (0, response_1.catchError)(product_controller_1.default.getProductById));
 // POST
-productRouter.post('/drafts', auth_middleware_1.default.verifyAdmin, (0, response_1.catchError)(product_controller_1.default.addDraftProduct));
-productRouter.post('/attributes/:productTypeId', auth_middleware_1.default.verifyAdmin, product_validation_1.default.addProductAttributes, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.addProductAttributes));
+productRouter.post('/drafts', (0, response_1.catchError)(auth_middleware_1.default.verifyAdmin), (0, response_1.catchError)(product_controller_1.default.addDraftProduct));
+productRouter.post('/attributes/:productTypeId', (0, response_1.catchError)(auth_middleware_1.default.verifyAdmin), product_validation_1.default.addProductAttributes, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.addProductAttributes));
 // PATCH
-productRouter.patch('/images', auth_middleware_1.default.verifyAdmin, product_validation_1.default.deleteProductImage, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.deleteProductImage));
-productRouter.patch('/:id', auth_middleware_1.default.verifyAdmin, product_validation_1.default.updateProduct, upload_middleware_1.default.productImages, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.updateProduct));
+productRouter.patch('/images', (0, response_1.catchError)(auth_middleware_1.default.verifyAdmin), product_validation_1.default.deleteProductImage, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.deleteProductImage));
+productRouter.patch('/:id', (0, response_1.catchError)(auth_middleware_1.default.verifyAdmin), product_validation_1.default.updateProduct, upload_middleware_1.default.productImages, validation_middleware_1.default.validatePayload, (0, response_1.catchError)(product_controller_1.default.updateProduct));
 exports.default = productRouter;
 //# sourceMappingURL=product.route.js.map
