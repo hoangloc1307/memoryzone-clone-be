@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const response_1 = require("../utils/response");
 const httpStatus_1 = require("../constants/httpStatus");
 const prisma_1 = __importDefault(require("../utils/prisma"));
+// Get user info
 const getMe = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield prisma_1.default.user.findUnique({
         where: {

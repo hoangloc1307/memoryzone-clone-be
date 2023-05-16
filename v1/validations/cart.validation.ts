@@ -28,9 +28,12 @@ const updateCart = [
     .withMessage('Không hợp lệ'),
 ]
 
+const deleteCard = [...addToCart]
+
 const cartValidate = {
   addToCart,
   updateCart,
+  deleteCard,
 }
 
 export default cartValidate

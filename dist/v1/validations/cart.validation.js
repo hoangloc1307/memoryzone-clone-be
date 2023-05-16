@@ -27,9 +27,11 @@ const updateCart = [
         .isInt({ min: 1, allow_leading_zeroes: false })
         .withMessage('Không hợp lệ'),
 ];
+const deleteCard = [...addToCart];
 const cartValidate = {
     addToCart,
     updateCart,
+    deleteCard,
 };
 exports.default = cartValidate;
 //# sourceMappingURL=cart.validation.js.map

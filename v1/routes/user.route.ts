@@ -5,6 +5,7 @@ import { catchError } from '../utils/response'
 
 const userRouter = Router()
 
+// Get user info
 userRouter.get('/', catchError(authMiddleware.verifyAccessToken), catchError(userController.getMe))
 
 export default userRouter

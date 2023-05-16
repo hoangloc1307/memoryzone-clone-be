@@ -7,7 +7,10 @@ import { catchError } from '../utils/response'
 
 const cartRouter = Router()
 
+// Get cart info
 cartRouter.get('/', catchError(authMiddleware.verifyAccessToken), catchError(cartController.getCart))
+
+// Add to cart
 cartRouter.post(
   '/',
   catchError(authMiddleware.verifyAccessToken),
@@ -15,6 +18,8 @@ cartRouter.post(
   validationMiddleware.validatePayload,
   catchError(cartController.addToCart)
 )
+
+// Update cart item quantity
 cartRouter.patch(
   '/',
   catchError(authMiddleware.verifyAccessToken),
@@ -22,10 +27,12 @@ cartRouter.patch(
   validationMiddleware.validatePayload,
   catchError(cartController.updateCart)
 )
+
+// Delete cart item
 cartRouter.delete(
   '/',
   catchError(authMiddleware.verifyAccessToken),
-  cartValidate.addToCart,
+  cartValidate.deleteCard,
   validationMiddleware.validatePayload,
   catchError(cartController.deleteCartItem)
 )

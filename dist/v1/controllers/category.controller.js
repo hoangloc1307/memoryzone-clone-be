@@ -63,20 +63,20 @@ const updateCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 // Delete category
 const deleteCategory = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
-    const deleteCategory = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const deleteCategoryRecursive = (categoryId) => __awaiter(void 0, void 0, void 0, function* () {
         const categoryChildren = yield prisma_1.default.category.findMany({
             where: {
-                parentId: id,
+                parentId: categoryId,
             },
         });
-        yield Promise.all(categoryChildren.map(child => deleteCategory(child.id)));
+        yield Promise.all(categoryChildren.map(child => deleteCategoryRecursive(child.id)));
         yield prisma_1.default.category.delete({
             where: {
-                id: id,
+                id: categoryId,
             },
         });
     });
-    yield deleteCategory(id);
+    yield deleteCategoryRecursive(id);
     (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Xoá danh mục thành công' });
 });
 const categoryController = {

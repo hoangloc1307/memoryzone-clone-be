@@ -60,23 +60,23 @@ const updateCategory = async (req: Request, res: Response, next: NextFunction) =
 const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
   const id = Number(req.params.id)
 
-  const deleteCategory = async (id: number) => {
+  const deleteCategoryRecursive = async (categoryId: number) => {
     const categoryChildren = await prismaClient.category.findMany({
       where: {
-        parentId: id,
+        parentId: categoryId,
       },
     })
 
-    await Promise.all(categoryChildren.map(child => deleteCategory(child.id)))
+    await Promise.all(categoryChildren.map(child => deleteCategoryRecursive(child.id)))
 
     await prismaClient.category.delete({
       where: {
-        id: id,
+        id: categoryId,
       },
     })
   }
 
-  await deleteCategory(id)
+  await deleteCategoryRecursive(id)
 
   responseSuccess(res, STATUS.Ok, { message: 'Xoá danh mục thành công' })
 }

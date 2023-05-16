@@ -662,7 +662,7 @@ Cập nhật loại sản phẩm.
 
 | Code  | Description                                                  |
 | ----- | ------------------------------------------------------------ |
-| `400` | Access token chưa được gửi.                                  |
+| `400` | Access token chưa được gửi, dữ liệu không hợp lệ.            |
 | `401` | Token không đúng, token hết hạn, access token không tồn tại. |
 
 **Ví dụ**
@@ -723,7 +723,7 @@ Xoá loại sản phẩm.
 
 | Code  | Description                                                  |
 | ----- | ------------------------------------------------------------ |
-| `400` | Access token chưa được gửi.                                  |
+| `400` | Access token chưa được gửi, dữ liệu không hợp lệ.            |
 | `401` | Token không đúng, token hết hạn, access token không tồn tại. |
 
 **Ví dụ**
@@ -748,5 +748,366 @@ Xoá loại sản phẩm.
   "status": "Error",
   "name": "TOKEN_ERROR",
   "message": "Token không đúng"
+}
+```
+
+## IV. User
+
+### 4.1. Lấy thông tin người dùng (Get user info)
+
+Lấy thông tin người dùng.
+
+#### Endpoint
+
+`GET /user`
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Lấy thông tin thành công",
+  "data": {
+    "id": "clgeir0370001mwy869gbb5w6",
+    "name": "Trần Nguyễn Hoàng Lộc",
+    "dayOfBirth": null,
+    "email": "hoangloc13072@gmail.com",
+    "phone": null,
+    "address": null,
+    "type": "CUSTOMER"
+  }
+}
+```
+
+| Name         | Type                         | Description      |
+| ------------ | ---------------------------- | ---------------- |
+| `id`         | `String`                     | Id user.         |
+| `name`       | `String`                     | Tên user.        |
+| `dayOfBirth` | `String`                     | Ngày sinh user.  |
+| `email`      | `String`                     | Email user.      |
+| `phone`      | `String`                     | Điện thoại user. |
+| `address`    | `String`                     | Địa chỉ user.    |
+| `type`       | `'CUSTOMER'` \| `'EMPLOYEE'` | Loại user.       |
+
+## V. Cart
+
+### 5.1. Lấy giỏ hàng (Get cart)
+
+Lấy thông tin giỏ hàng.
+
+#### Endpoint
+
+`GET /cart`
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Lấy giỏ hàng thành công",
+  "data": [
+    {
+      "id": 6,
+      "name": "Bàn phím cơ không dây AKKO 5075B Plus Dragon Ball Super Goku RGB Hotswap (Akko CS Sw Crystal)",
+      "image": {
+        "link": "https://i.imgur.com/bgu2GOg.jpg",
+        "alt": "Bàn phím cơ không dây AKKO 5075B Plus Dragon Ball Super Goku RGB Hotswap (Akko CS Sw Crystal)"
+      },
+      "price": 3190000,
+      "priceDiscount": 2949000,
+      "inStock": 50,
+      "quantity": 1
+    }
+  ]
+}
+```
+
+| Name            | Type     | Description                       |
+| --------------- | -------- | --------------------------------- |
+| `id`            | `Number` | Id sản phẩm.                      |
+| `name`          | `String` | Tên sản phẩm.                     |
+| `link`          | `String` | Link hình ảnh sản phẩm.           |
+| `alt`           | `String` | Alt hình ảnh sản phẩm.            |
+| `price`         | `Number` | Giá sản phẩm.                     |
+| `priceDiscount` | `Number` | Giá khuyến mãi sản phẩm.          |
+| `inStock`       | `Number` | Số lượng sản phẩm trong kho.      |
+| `quantity`      | `Number` | Số lượng sản phẩm trong giỏ hàng. |
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
+  "message": "Access token chưa được gửi"
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_EXPIRED",
+  "message": "Token hết hạn"
+}
+```
+
+### 5.2. Thêm vào giỏ hàng (Add to cart)
+
+Thêm sản phẩm vào giỏ hàng.
+
+#### Endpoint
+
+`POST /cart`
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+##### Body
+
+```json
+{
+  "productId": 1
+}
+```
+
+| Name         | Type     | Description  |
+| ------------ | -------- | ------------ |
+| `productId*` | `Number` | Id sản phẩm. |
+
+#### Response
+
+##### Success
+
+`201 Created`
+
+```json
+{
+  "status": "Success",
+  "message": "Thêm sản phẩm vào giỏ hàng thành công"
+}
+```
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+| `404` | Sản phẩm không tồn tại hoặc đã hết hàng.                     |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
+  "message": "Access token chưa được gửi"
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_EXPIRED",
+  "message": "Token hết hạn"
+}
+```
+
+- `404`
+
+```json
+{
+  "status": "Error",
+  "name": "PRODUCT_NOT_AVAILABLE",
+  "message": "Sản phẩm không tồn tại hoặc đã hết hàng"
+}
+```
+
+### 5.3. Cập nhật giỏ hàng (Update cart)
+
+Cập nhật giỏ hàng.
+
+#### Endpoint
+
+`PATCH /cart`
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+##### Body
+
+```json
+{
+  "productId": 1,
+  "quantity": 2
+}
+```
+
+| Name         | Type     | Description        |
+| ------------ | -------- | ------------------ |
+| `productId*` | `Number` | Id sản phẩm.       |
+| `quantity*`  | `Number` | Số lượng sản phẩm. |
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Cập nhật giỏ hàng thành công"
+}
+```
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+| `404` | Sản phẩm không tồn tại hoặc đã hết hàng.                     |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
+  "message": "Access token chưa được gửi"
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_EXPIRED",
+  "message": "Token hết hạn"
+}
+```
+
+- `404`
+
+```json
+{
+  "status": "Error",
+  "name": "PRODUCT_NOT_AVAILABLE",
+  "message": "Sản phẩm không tồn tại hoặc đã hết hàng"
+}
+```
+
+### 5.4. Xoá sản phẩm giỏ hàng (Delete cart item)
+
+Xoá sản phẩm giỏ hàng.
+
+#### Endpoint
+
+`DELETE /cart`
+
+#### Request
+
+##### Headers
+
+| Key             | Value                    |
+| --------------- | ------------------------ |
+| `Authorization` | `Bearer {{accessToken}}` |
+
+##### Body
+
+```json
+{
+  "productId": 1
+}
+```
+
+| Name         | Type     | Description  |
+| ------------ | -------- | ------------ |
+| `productId*` | `Number` | Id sản phẩm. |
+
+#### Response
+
+##### Success
+
+`200 OK`
+
+```json
+{
+  "status": "Success",
+  "message": "Xoá sản phẩm khỏi giỏ hàng thành công"
+}
+```
+
+##### Error
+
+| Code  | Description                                                  |
+| ----- | ------------------------------------------------------------ |
+| `400` | Access token chưa được gửi.                                  |
+| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
+
+**Ví dụ**
+
+- `400`
+
+```json
+{
+  "status": "Error",
+  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
+  "message": "Access token chưa được gửi"
+}
+```
+
+- `401`
+
+```json
+{
+  "status": "Error",
+  "name": "TOKEN_EXPIRED",
+  "message": "Token hết hạn"
 }
 ```
