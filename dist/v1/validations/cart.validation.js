@@ -5,29 +5,32 @@ const addToCart = [
     (0, express_validator_1.body)('productId')
         .notEmpty()
         .withMessage('Không được để trống')
-        .not()
-        .isString()
-        .withMessage('Phải là số')
-        .isNumeric({ no_symbols: true })
-        .withMessage('Không hợp lệ'),
+        .isInt({ min: 1 })
+        .toInt()
+        .withMessage('Phải là số nguyên lớn hơn 0'),
 ];
 const updateCart = [
     (0, express_validator_1.body)('productId')
         .notEmpty()
         .withMessage('Không được để trống')
-        .not()
-        .isString()
-        .withMessage('Phải là số')
-        .isNumeric({ no_symbols: true })
-        .withMessage('Không hợp lệ'),
+        .isInt({ min: 1 })
+        .toInt()
+        .withMessage('Phải là số nguyên lớn hơn 0'),
     (0, express_validator_1.body)('quantity')
-        .not()
-        .isString()
-        .withMessage('Phải là số')
-        .isInt({ min: 1, allow_leading_zeroes: false })
-        .withMessage('Không hợp lệ'),
+        .notEmpty()
+        .withMessage('Không được để trống')
+        .isInt({ min: 1 })
+        .toInt()
+        .withMessage('Phải là số nguyên lớn hơn 0'),
 ];
-const deleteCard = [...addToCart];
+const deleteCard = [
+    (0, express_validator_1.body)('productId')
+        .notEmpty()
+        .withMessage('Không được để trống')
+        .isInt({ min: 1 })
+        .toInt()
+        .withMessage('Phải là số nguyên lớn hơn 0'),
+];
 const cartValidate = {
     addToCart,
     updateCart,

@@ -5,13 +5,16 @@ import prismaClient from '../utils/prisma'
 import AppError from '../utils/error'
 import { CartItem } from '../types/cart.type'
 
-// [GET] /cart
+// Get cart info
 const getCart = async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.jwtDecoded.id
+  const userId: string = req.jwtDecoded.id
 
   const data = await prismaClient.cart.findMany({
     where: {
       userId: userId,
+      product: {
+        status: true,
+      },
     },
     select: {
       quantity: true,
@@ -23,9 +26,6 @@ const getCart = async (req: Request, res: Response, next: NextFunction) => {
             select: {
               link: true,
               alt: true,
-            },
-            orderBy: {
-              id: 'asc',
             },
             take: 1,
           },
@@ -53,47 +53,63 @@ const getCart = async (req: Request, res: Response, next: NextFunction) => {
 // Add product to cart
 const addToCart = async (req: Request, res: Response, next: NextFunction) => {
   const productId: number = req.body.productId
-  const userId = req.jwtDecoded.id
+  const userId: string = req.jwtDecoded.id
 
-  const product = await prismaClient.product.findUnique({
+  const product = await prismaClient.product.findFirst({
     where: {
       id: productId,
+      status: true,
     },
     select: {
       quantity: true,
     },
   })
 
-  if (product && product.quantity > 1) {
-    await prismaClient.cart.create({
-      data: {
+  if (product && product.quantity > 0) {
+    await prismaClient.cart.upsert({
+      where: {
+        productId_userId: {
+          productId: productId,
+          userId: userId,
+        },
+      },
+      create: {
         quantity: 1,
         productId: productId,
         userId: userId,
       },
+      update: {
+        quantity: {
+          increment: 1,
+        },
+      },
     })
     responseSuccess(res, STATUS.Created, { message: 'Thêm sản phẩm vào giỏ hàng thành công' })
   } else {
-    next(new AppError(STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng', 'PRODUCT_NOT_AVAILABLE'))
+    const errorMessage = product ? 'Sản phẩm đã hết hàng' : 'Sản phẩm không tồn tại'
+    const errorCode = product ? 'PRODUCT_OUT_OF_STOCK' : 'PRODUCT_NOT_EXISTS'
+    next(new AppError(STATUS.NotFound, errorMessage, errorCode))
   }
 }
 
 // Update cart item
 const updateCart = async (req: Request, res: Response, next: NextFunction) => {
   const { productId, quantity }: { productId: number; quantity: number } = req.body
-  const userId = req.jwtDecoded.id
+  const userId: string = req.jwtDecoded.id
 
-  const product = await prismaClient.product.findUnique({
+  const product = await prismaClient.product.findFirst({
     where: {
       id: productId,
+      status: true,
     },
     select: {
       quantity: true,
     },
   })
 
-  if (product && product.quantity > 1) {
-    const availableQuantity = product.quantity < quantity ? product.quantity : quantity
+  if (product && product.quantity > 0) {
+    const availableQuantity = Math.min(product.quantity, quantity)
+
     await prismaClient.cart.update({
       where: {
         productId_userId: {
@@ -107,14 +123,16 @@ const updateCart = async (req: Request, res: Response, next: NextFunction) => {
     })
     responseSuccess(res, STATUS.Ok, { message: 'Cập nhật giỏ hàng thành công' })
   } else {
-    next(new AppError(STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng', 'PRODUCT_NOT_AVAILABLE'))
+    const errorMessage = product ? 'Sản phẩm đã hết hàng' : 'Sản phẩm không tồn tại'
+    const errorCode = product ? 'PRODUCT_OUT_OF_STOCK' : 'PRODUCT_NOT_EXISTS'
+    next(new AppError(STATUS.NotFound, errorMessage, errorCode))
   }
 }
 
 // Delete cart item
 const deleteCartItem = async (req: Request, res: Response, next: NextFunction) => {
-  const { productId } = req.body
-  const userId = req.jwtDecoded.id
+  const productId: number = req.body.productId
+  const userId: string = req.jwtDecoded.id
 
   await prismaClient.cart.delete({
     where: {

@@ -16,12 +16,15 @@ const response_1 = require("../utils/response");
 const httpStatus_1 = require("../constants/httpStatus");
 const prisma_1 = __importDefault(require("../utils/prisma"));
 const error_1 = __importDefault(require("../utils/error"));
-// [GET] /cart
+// Get cart info
 const getCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.jwtDecoded.id;
     const data = yield prisma_1.default.cart.findMany({
         where: {
             userId: userId,
+            product: {
+                status: true,
+            },
         },
         select: {
             quantity: true,
@@ -33,9 +36,6 @@ const getCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
                         select: {
                             link: true,
                             alt: true,
-                        },
-                        orderBy: {
-                            id: 'asc',
                         },
                         take: 1,
                     },
@@ -61,42 +61,57 @@ const getCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 const addToCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const productId = req.body.productId;
     const userId = req.jwtDecoded.id;
-    const product = yield prisma_1.default.product.findUnique({
+    const product = yield prisma_1.default.product.findFirst({
         where: {
             id: productId,
+            status: true,
         },
         select: {
             quantity: true,
         },
     });
-    if (product && product.quantity > 1) {
-        yield prisma_1.default.cart.create({
-            data: {
+    if (product && product.quantity > 0) {
+        yield prisma_1.default.cart.upsert({
+            where: {
+                productId_userId: {
+                    productId: productId,
+                    userId: userId,
+                },
+            },
+            create: {
                 quantity: 1,
                 productId: productId,
                 userId: userId,
+            },
+            update: {
+                quantity: {
+                    increment: 1,
+                },
             },
         });
         (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Created, { message: 'Thêm sản phẩm vào giỏ hàng thành công' });
     }
     else {
-        next(new error_1.default(httpStatus_1.STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng', 'PRODUCT_NOT_AVAILABLE'));
+        const errorMessage = product ? 'Sản phẩm đã hết hàng' : 'Sản phẩm không tồn tại';
+        const errorCode = product ? 'PRODUCT_OUT_OF_STOCK' : 'PRODUCT_NOT_EXISTS';
+        next(new error_1.default(httpStatus_1.STATUS.NotFound, errorMessage, errorCode));
     }
 });
 // Update cart item
 const updateCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { productId, quantity } = req.body;
     const userId = req.jwtDecoded.id;
-    const product = yield prisma_1.default.product.findUnique({
+    const product = yield prisma_1.default.product.findFirst({
         where: {
             id: productId,
+            status: true,
         },
         select: {
             quantity: true,
         },
     });
-    if (product && product.quantity > 1) {
-        const availableQuantity = product.quantity < quantity ? product.quantity : quantity;
+    if (product && product.quantity > 0) {
+        const availableQuantity = Math.min(product.quantity, quantity);
         yield prisma_1.default.cart.update({
             where: {
                 productId_userId: {
@@ -111,12 +126,14 @@ const updateCart = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         (0, response_1.responseSuccess)(res, httpStatus_1.STATUS.Ok, { message: 'Cập nhật giỏ hàng thành công' });
     }
     else {
-        next(new error_1.default(httpStatus_1.STATUS.NotFound, 'Sản phẩm không tồn tại hoặc đã hết hàng', 'PRODUCT_NOT_AVAILABLE'));
+        const errorMessage = product ? 'Sản phẩm đã hết hàng' : 'Sản phẩm không tồn tại';
+        const errorCode = product ? 'PRODUCT_OUT_OF_STOCK' : 'PRODUCT_NOT_EXISTS';
+        next(new error_1.default(httpStatus_1.STATUS.NotFound, errorMessage, errorCode));
     }
 });
 // Delete cart item
 const deleteCartItem = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { productId } = req.body;
+    const productId = req.body.productId;
     const userId = req.jwtDecoded.id;
     yield prisma_1.default.cart.delete({
         where: {

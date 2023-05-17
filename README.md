@@ -797,7 +797,7 @@ Lấy thông tin người dùng.
 
 ### 5.1. Lấy giỏ hàng (Get cart)
 
-Lấy thông tin giỏ hàng.
+Lấy danh sách các sản phẩm đã được thêm vào giỏ hàng.
 
 #### Endpoint
 
@@ -851,32 +851,10 @@ Lấy thông tin giỏ hàng.
 
 ##### Error
 
-| Code  | Description                                                  |
-| ----- | ------------------------------------------------------------ |
-| `400` | Access token chưa được gửi.                                  |
-| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
-
-**Ví dụ**
-
-- `400`
-
-```json
-{
-  "status": "Error",
-  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
-  "message": "Access token chưa được gửi"
-}
-```
-
-- `401`
-
-```json
-{
-  "status": "Error",
-  "name": "TOKEN_EXPIRED",
-  "message": "Token hết hạn"
-}
-```
+| Code  | Description                               |
+| ----- | ----------------------------------------- |
+| `400` | Token chưa được gửi.                      |
+| `401` | Token không đúng, hết hạn, không tồn tại. |
 
 ### 5.2. Thêm vào giỏ hàng (Add to cart)
 
@@ -902,9 +880,9 @@ Thêm sản phẩm vào giỏ hàng.
 }
 ```
 
-| Name         | Type     | Description  |
-| ------------ | -------- | ------------ |
-| `productId*` | `Number` | Id sản phẩm. |
+| Name           | Type     | Description  |
+| -------------- | -------- | ------------ |
+| `productId` \* | `Number` | Id sản phẩm. |
 
 #### Response
 
@@ -921,47 +899,15 @@ Thêm sản phẩm vào giỏ hàng.
 
 ##### Error
 
-| Code  | Description                                                  |
-| ----- | ------------------------------------------------------------ |
-| `400` | Access token chưa được gửi.                                  |
-| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
-| `404` | Sản phẩm không tồn tại hoặc đã hết hàng.                     |
-
-**Ví dụ**
-
-- `400`
-
-```json
-{
-  "status": "Error",
-  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
-  "message": "Access token chưa được gửi"
-}
-```
-
-- `401`
-
-```json
-{
-  "status": "Error",
-  "name": "TOKEN_EXPIRED",
-  "message": "Token hết hạn"
-}
-```
-
-- `404`
-
-```json
-{
-  "status": "Error",
-  "name": "PRODUCT_NOT_AVAILABLE",
-  "message": "Sản phẩm không tồn tại hoặc đã hết hàng"
-}
-```
+| Code  | Description                               |
+| ----- | ----------------------------------------- |
+| `400` | Token chưa được gửi.                      |
+| `401` | Token không đúng, hết hạn, không tồn tại. |
+| `404` | Sản phẩm không tồn tại, hết hàng.         |
 
 ### 5.3. Cập nhật giỏ hàng (Update cart)
 
-Cập nhật giỏ hàng.
+Cập nhật số lượng của các sản phẩm trong giỏ hàng.
 
 #### Endpoint
 
@@ -984,10 +930,10 @@ Cập nhật giỏ hàng.
 }
 ```
 
-| Name         | Type     | Description        |
-| ------------ | -------- | ------------------ |
-| `productId*` | `Number` | Id sản phẩm.       |
-| `quantity*`  | `Number` | Số lượng sản phẩm. |
+| Name           | Type     | Description        |
+| -------------- | -------- | ------------------ |
+| `productId` \* | `Number` | Id sản phẩm.       |
+| `quantity` \*  | `Number` | Số lượng sản phẩm. |
 
 #### Response
 
@@ -1004,47 +950,15 @@ Cập nhật giỏ hàng.
 
 ##### Error
 
-| Code  | Description                                                  |
-| ----- | ------------------------------------------------------------ |
-| `400` | Access token chưa được gửi.                                  |
-| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
-| `404` | Sản phẩm không tồn tại hoặc đã hết hàng.                     |
-
-**Ví dụ**
-
-- `400`
-
-```json
-{
-  "status": "Error",
-  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
-  "message": "Access token chưa được gửi"
-}
-```
-
-- `401`
-
-```json
-{
-  "status": "Error",
-  "name": "TOKEN_EXPIRED",
-  "message": "Token hết hạn"
-}
-```
-
-- `404`
-
-```json
-{
-  "status": "Error",
-  "name": "PRODUCT_NOT_AVAILABLE",
-  "message": "Sản phẩm không tồn tại hoặc đã hết hàng"
-}
-```
+| Code  | Description                               |
+| ----- | ----------------------------------------- |
+| `400` | Token chưa được gửi.                      |
+| `401` | Token không đúng, hết hạn, không tồn tại. |
+| `404` | Sản phẩm không tồn tại, hết hàng.         |
 
 ### 5.4. Xoá sản phẩm giỏ hàng (Delete cart item)
 
-Xoá sản phẩm giỏ hàng.
+Xoá sản phẩm khỏi giỏ hàng.
 
 #### Endpoint
 
@@ -1066,9 +980,9 @@ Xoá sản phẩm giỏ hàng.
 }
 ```
 
-| Name         | Type     | Description  |
-| ------------ | -------- | ------------ |
-| `productId*` | `Number` | Id sản phẩm. |
+| Name           | Type     | Description  |
+| -------------- | -------- | ------------ |
+| `productId` \* | `Number` | Id sản phẩm. |
 
 #### Response
 
@@ -1085,29 +999,7 @@ Xoá sản phẩm giỏ hàng.
 
 ##### Error
 
-| Code  | Description                                                  |
-| ----- | ------------------------------------------------------------ |
-| `400` | Access token chưa được gửi.                                  |
-| `401` | Token không đúng, token hết hạn, access token không tồn tại. |
-
-**Ví dụ**
-
-- `400`
-
-```json
-{
-  "status": "Error",
-  "name": "ACCESS_TOKEN_HAS_NOT_BEEN_SENT",
-  "message": "Access token chưa được gửi"
-}
-```
-
-- `401`
-
-```json
-{
-  "status": "Error",
-  "name": "TOKEN_EXPIRED",
-  "message": "Token hết hạn"
-}
-```
+| Code  | Description                               |
+| ----- | ----------------------------------------- |
+| `400` | Token chưa được gửi.                      |
+| `401` | Token không đúng, hết hạn, không tồn tại. |
